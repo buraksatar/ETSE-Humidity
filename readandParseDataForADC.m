@@ -6,15 +6,15 @@ fopen(module)
 
 x = 0;
 
-while x<5
+while x<30
     x=x+1
     a = fscanf(module)
     filteredData = textscan(a,'%s %d %s %d %s',5,'Delimiter',' ')
        
     y(x) = filteredData{2}    
-    tf = strjoin(filteredData{5})   
-    tf = tf(3:end)
-    resistorData = str2num(tf)
+    %tf = strjoin(filteredData{5})   
+    %tf = tf(3:end)
+    %resistorData = str2num(tf)
     
     drawnow
     plot(y,'--')
