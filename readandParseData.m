@@ -6,43 +6,26 @@ fopen(module)
 
 x = 0;
 
-while x<20
+while x<5
     x=x+1
     a = fscanf(module)
-    B = textscan(a,'%s %d %s %d %s',5,'Delimiter',' ')
+    filteredData = textscan(a,'%s %d %s %d %s',5,'Delimiter',' ')
+       
+    y(x) = filteredData{2}    
+    tf = strjoin(filteredData{5})   
+    tf = tf(3:end)
+    resistorData = str2num(tf)
     
-    %B{2}
-    
-    y1(x)= B{2}
     drawnow
-    plot(y1,'--')
+    plot(y,'--')
     grid on
-%    hold on
-    %title('Reading data from module')
-    %xlabel('dsfs')
-    %ylabel('fsdgdsfsfdsfs')
-    %pause(0.1)
+    title('Reading data from module')
+    xlabel('Time')
+    ylabel('Data from ADC')
+    pause(0.1)  
     
-    %fstring = fileread('test.txt'); % read the file as one string
-    %fblocks = regexp(fstring,'[A-Za-z]','split'); % uses any single character as a separator
-    %fblocks(1) = []; % removes anything before the first character
-    %out = cell(size(fblocks));
-    
-    %for k = 1:numel(fblocks)
-    %   out{k} = textscan(fblocks{k},'%f %f','delimiter',' ','MultipleDelimsAsOne', 1);
-    %   out{k} = horzcat(out{k}{:});
 end
     
-    %y1(x)=fscanf(module, '%d')
-    %drawnow
-    %plot(y1,'r--','linewidth',3)
-    %grid on
-    %hold on
-    %title('Reading data from module')
-    %xlabel('dsfs')
-    %ylabel('fsdgdsfsfdsfs')
-    %pause(0.1)
-
 fclose(module)
 delete(module)
 clear module
