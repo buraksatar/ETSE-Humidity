@@ -6,13 +6,22 @@ fopen(module)
 
 x = 0;
 
-while x<3
+while x<20
     x=x+1
     a = fscanf(module)
     B = textscan(a,'%s %d %s %d %s',5,'Delimiter',' ')
     
-    % B{2} % to read just ADC data
-    B{:} % to read all data
+    %B{2}
+    
+    y1(x)= B{2}
+    drawnow
+    plot(y1,'--')
+    grid on
+%    hold on
+    %title('Reading data from module')
+    %xlabel('dsfs')
+    %ylabel('fsdgdsfsfdsfs')
+    %pause(0.1)
     
     %fstring = fileread('test.txt'); % read the file as one string
     %fblocks = regexp(fstring,'[A-Za-z]','split'); % uses any single character as a separator
