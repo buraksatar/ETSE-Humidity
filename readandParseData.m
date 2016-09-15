@@ -9,9 +9,10 @@ x = 0;
 while x<3
     x=x+1
     a = fscanf(module)
-    B = textscan(a,'%s',5,'Delimiter',' ')
+    B = textscan(a,'%s %d %s %d %s',5,'Delimiter',' ')
     
-    B{:}
+    % B{2} % to read just ADC data
+    B{:} % to read all data
     
     %fstring = fileread('test.txt'); % read the file as one string
     %fblocks = regexp(fstring,'[A-Za-z]','split'); % uses any single character as a separator
