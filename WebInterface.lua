@@ -160,6 +160,14 @@ srv:listen(80,function(conn)
         buf = buf.."<h1> ESP8266 Web Server2</h1>";
         buf = buf.."<p>Temperature = "..(t/10).."."..(temp-(temp/10)*10).."</p>";
 
+--        http.get("https://testautonomous.firebaseio.com/number.json", nil, function(code, data)
+--          if (code < 0) then
+--            print("HTTP request failed")
+--          else
+--            print(code, data)
+--          end
+--        end)
+        
 --        buf = buf.."<p>ADC="..adc.."</p>";
         buf = buf.."<h1> ESP8266 Web Server</h1>";
         buf = buf.."<p>GPIO0 <a href=\"?pin=ON1\"><button>ON</button></a>&nbsp;<a href=\"?pin=OFF1\"><button>OFF</button></a></p>";
