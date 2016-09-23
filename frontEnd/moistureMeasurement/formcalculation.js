@@ -1,9 +1,10 @@
- function getCalculate(a,b,c)
+function getCalculate(a,b,c)
  {
 	 var x = "x";
 	 var result1 = a + "*" + x + "^" + b + "+" + c;
 	 return result1;
  }
+ 
  
  var filling_material= new Array();
 	filling_material["None"]= 1;
@@ -17,7 +18,7 @@
 	filling_material["Material8"]= getCalculate(14.62,-0.2774,11.5);
 	filling_material["Material9"]= getCalculate(13.69,-0.2404,8.352);
  
-	 
+
 function getResult()
 {
     var moistureResult=0;
@@ -32,10 +33,9 @@ function getResult()
     return moistureResult;
 }
 
-        
+   
 function calculateTotal()
-{
-     
+{    
     //display the result
     var divobj = document.getElementById('totalPrice');
     divobj.style.display='block';
@@ -44,11 +44,10 @@ function calculateTotal()
 		divobj.innerHTML = "No material selected! Please select one! ";
 	}	
     else{
-		divobj.innerHTML = "For selected material, f(x) is "+ getResult();
-	}
-	
-    
+		divobj.innerHTML = "For selected material, f(x) is : <br/><br/>" + getResult();
+	}   
 }
+
 
 function hideTotal()
 {
