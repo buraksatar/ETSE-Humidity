@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+<title>Output element sample</title>
+<body>
+    <article>
+        <header>
+            <h1>Output element sample</h1>
+            <p>Demo showing output element in HTML5</p>
+        </header>
+        <form action="" name="materialform" id="materialform" onsubmit="return false;">
+        <div>
+            <div class="cont_order">
+               <fieldset>
+                <legend>Calculate the Moisture f(x) value!</legend>
+                <label >The formula is f(x) = a*x^b+c</label>
+				<br/><br/>
+				<label >Select The Material</label>
+         
+                <select id="materialList" name='filling' onchange="totalamount.value = filling.value">
+                <option value="None"  >Select Material</option>
+                <option value="15.84 * x^-0.2576 + 8.923" >Material 1</option>
+                <option value="13.2 * x^-0.2515 + 10.77">Material 2</option>
+				<option value="17.06 * x^-0.2832 + 10.64">Material 3</option>
+				<option value="11.57 * x^-0.2447 + 9.538">Material 4</option>
+				<option value="13.07 * x^-0.2664 + 7.812">Material 5</option>
+				<option value="11.34 * x^-0.2485 + 7.965">Material 6</option>
+				<option value="10.03 * x^-0.3146 + 12.35">Material 7</option>
+				<option value="14.62 * x^-0.2774 + 11.5">Material 8</option>
+				<option value="13.69 * x^-0.2404 + 8.352">Material 9</option>
+               </select>
+			   <br />
+           
+            For selected material, f(x) is :  <br /><br /><output name="totalamount" id="totalamount" for="principal period interest"></output>
+                <br/>
+               
+                </fieldset>
+            </div>
+            
+        </div>  
+       </form>
+        <footer>
+            <h1></h1>
+            <p>29.09.2016</p>
+        </footer>
+    </article>
+</body>
+ 
+</html>
