@@ -1,5 +1,5 @@
 DEVICE_ID  = 1
-ADS_10000_addr = 0x49
+ADS_10000_addr = 0x48
 LM75_addr = 0x4F
 en = 2
 sda = 4
@@ -59,7 +59,6 @@ function measureTemp()
     print(string.format("Temperature= %d.%d \r\n",temp/10,temp-(temp/10)*10)) 
     return temp
 end
-------------------------------
 
 function readADC()
     reg = read_reg(ADS_10000_addr,2) --for brd#3
@@ -87,9 +86,6 @@ function mux(a)
     end
 end
 
--------------------------------------
--------------------------------------
-
 function adc2r(adc,mux)
     if adc==0 then
         return 99999999
@@ -106,14 +102,13 @@ function adc2r(adc,mux)
 return r   
 end           
 
--------------Here be main measuring setup
 setmux(0,0,0)
 currMeasure=0
 measures={}
 measurecounter=0
 currMUX=0
 minMval=250
-maxMval=2100 --mV, assuming upper range of nonlinearity
+maxMval=2100 
 
 function makeMeasure()
     currMeasure=readADC()
@@ -136,16 +131,6 @@ end
 tmr.register(0, 2000, tmr.ALARM_AUTO, makeMeasure)
 tmr.start(0);
 
---Web UI
---function sendreport(adc,mux,stable)
---    r=adc2r(adc,mux)
---    server_response="<body><div class=\"wrap\">";
- --   server_response=server_response.."<p>R="..r.."</p>";
---    server_response=server_response.."<p>ADC="..adc.."</p>";
- --   server_response=server_response.."<p>Stability "..stable.."</p><p>ID "..DEVICE_ID.."</p>";
- --   server_response=server_response.."<body>"
---end
-
 if srv~=nil then
   srv:close()
 end
@@ -153,7 +138,6 @@ end
 srv=net.createServer(net.TCP)
 srv:listen(80,function(conn)
     conn:on("receive", function(client,request)
---    sendreport(currMeasure,currMUX,0)
     t=measureTemp()
     denemeVar=t/10
         local buf = "";
@@ -162,17 +146,16 @@ srv:listen(80,function(conn)
         buf = buf.."td { border: 2px solid black; padding: 15px; text-align: center;} tr:nth-child(even) { background-color: #eee;}"
         buf = buf.."</style> <meta charset='UTF-8'> <meta name='viewport' content='width=device-width', initial-scale=1.0></head>"
         buf = buf.."<body><form><table align='center'>"
-        buf = buf.."<tr><th>Data Type</th><th>Value</th></tr><tr><td>Temperature</td> <td>255</td></tr><tr><td>ADC</td><td>4543</td></tr><tr>"
-        buf = buf.."<td>R</td><td>1</td></tr> <tr><td> Moisture <select id='materialList' name='filling' onchange='totalamount.value = filling.value'>"
-        buf = buf.."<option value='None' selected>Select Material</option><option value='15.84 * x^-0.2576 + 8.923'>Material 1</option>"
-        buf = buf.."<option value='13.20 * x^-0.2515 + 10.77'>Material 2</option><option value='17.06 * x^-0.2832 + 10.64'>Material 3</option>"
-        buf = buf.."<option value='11.57 * x^-0.2447 + 9.538'>Material 4</option><option value='13.07 * x^-0.2664 + 7.812'>Material 5</option>"
-        buf = buf.."<option value='11.34 * x^-0.2485 + 7.965'>Material 6</option><option value='10.03 * x^-0.3146 + 12.35'>Material 7</option>"
-        buf = buf.."<option value='14.62 * x^-0.2774 + 11.50'>Material 8</option><option value='13.69 * x^-0.2404 + 8.352'>Material 9</option>"
+        buf = buf.."<tr><th>Data Type</th><th>Value</th></tr><tr><td>Temperature</td> <td>"..(temp/10).."."..(temp-temp/10*10).."</td></tr><tr><td>ADC</td><td>"..currMeasure.."</td></tr>"
+        buf = buf.."<tr><td> Moisture <select id='materialList' name='filling' onchange='totalamount.value = filling.value'>"
+        buf = buf.."<option value='None' selected>Select Material</option><option value='15.84 * "..adc2r(currMeasure,currMUX).."^-0.2576 + 8.923'>Material 1</option>"
+        buf = buf.."<option value='13.20 *"..adc2r(currMeasure,currMUX).."^-0.2515 + 10.77'>Material 2</option><option value='17.06 * "..adc2r(currMeasure,currMUX).."^-0.2832 + 10.64'>Material 3</option>"
+        buf = buf.."<option value='11.57 *" ..adc2r(currMeasure,currMUX).."^-0.2447 + 9.538'>Material 4</option><option value='13.07 * "..adc2r(currMeasure,currMUX).."^-0.2664 + 7.812'>Material 5</option>"
+        buf = buf.."<option value='11.34 *"..adc2r(currMeasure,currMUX).."^-0.2485 + 7.965'>Material 6</option><option value='10.03 * "..adc2r(currMeasure,currMUX).."^-0.3146 + 12.35'>Material 7</option>"
+        buf = buf.."<option value='14.62 * "..adc2r(currMeasure,currMUX).."^-0.2774 + 11.50'>Material 8</option><option value='13.69 * "..adc2r(currMeasure,currMUX).."^-0.2404 + 8.352'>Material 9</option>"
         buf = buf.."</select></td> <td><output name='totalamount' ></output></td></tr></table></form></body></html>"
         
         client:send(buf..server_response);
-       -- client:send(server_response);
         client:close();
         collectgarbage();
     end)
