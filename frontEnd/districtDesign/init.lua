@@ -132,6 +132,8 @@ end
 -------------Here be main measuring setup
 setmux(0,0,0)
 currMeasure=0
+currTemp=(measureTemp()/10)
+--temp/10,temp-(temp/10)*10)
 measures={}
 measurecounter=0
 currMUX=0
@@ -155,8 +157,8 @@ function makeMeasure()
 end
 --------------------------------
     
---tmr.register(0, 2000, tmr.ALARM_AUTO, makeMeasure)
---tmr.start(0);
+tmr.register(0, 2000, tmr.ALARM_AUTO, makeMeasure)
+tmr.start(0);
 if srv~=nil then
   srv:close()
 end
@@ -168,8 +170,9 @@ srv:listen(80, function(conn)
                 "Content-Type: text/html; charset=UTF-8\r\n\r\n"..
                 " <!DOCTYPE html>";
         buf = buf.."<head><script>";
-        buf = buf..'var adc='..adc2r(currMeasure,currMUX)..' </script>'; 
-        
+        buf = buf..'var res='..adc2r(currMeasure,currMUX)..' </script>';
+        buf = buf..'<script>var adc='..currMeasure..' </script>';
+        buf = buf..'<script>var temp='..currTemp..' </script>'; 
         sck:send(buf,
                 function()
                 Sendfile(sck, "page.html") 
