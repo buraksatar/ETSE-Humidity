@@ -132,7 +132,7 @@ end
 -------------Here be main measuring setup
 setmux(0,0,0)
 currMeasure=0
-currTemp=(measureTemp()/10)
+currTemp=(measureTemp())
 --temp/10,temp-(temp/10)*10)
 measures={}
 measurecounter=0
