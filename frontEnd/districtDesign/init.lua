@@ -172,7 +172,8 @@ srv:listen(80, function(conn)
         buf = buf.."<head><script>";
         buf = buf..'var res='..adc2r(currMeasure,currMUX)..' </script>';
         buf = buf..'<script>var adc='..currMeasure..' </script>';
-        buf = buf..'<script>var temp='..currTemp..' </script>'; 
+        buf = buf..'<script>var temp='..currTemp..' </script>';
+        buf = buf..'<script>var mux='..currMUX..' </script>';  
         sck:send(buf,
                 function()
                 Sendfile(sck, "page.html") 
