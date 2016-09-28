@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Moisture Material</title>
+</head>
+
+<script>
+    var adc_var = adc
+    var temp_var = parseFloat(temp)/100
+    var res_var = res
+    var mux_var = mux
+</script>
+
+<script>
+function getCalculate(a,b,c)
+ {
+     var result1 = a * (Math.pow(res_var, b)) + c;
+     var result2 = result1.toPrecision(5);
+     return result2;
+ }
+ 
+ var filling_material= new Array();
+    filling_material["None"]= 1;
+    filling_material["Material1"]= getCalculate(15.84,-0.2576,8.923);
+    filling_material["Material2"]= getCalculate(13.2,-0.2515,10.77);
+    filling_material["Material3"]= getCalculate(17.06,-0.2832,10.64);
+    filling_material["Material4"]= getCalculate(11.57,-0.2447,9.538);
+    filling_material["Material5"]= getCalculate(13.07,-0.2664,7.812);
+    filling_material["Material6"]= getCalculate(11.34,-0.2485,7.965);
+    filling_material["Material7"]= getCalculate(10.03,-0.3146,12.35);
+    filling_material["Material8"]= getCalculate(14.62,-0.2774,11.5);
+    filling_material["Material9"]= getCalculate(13.69,-0.2404,8.352);
+ 
+
+function getResult()
+{
+    var moistureResult=0;
+    //Get a reference to the form id="materialform"
+    var theForm = document.forms["materialform"];
+    //Get a reference to the select id="materialList"
+     var selectedFilling = theForm.elements["materialList"];
+     
+    moistureResult = filling_material[selectedFilling.value];
+
+    //finally return moistureResult
+    return moistureResult;
+}
+
+   
+function calculateTotal()
+{    
+    //display the result
+    var divobj = document.getElementById('totalPrice');
+    divobj.style.display='block';
+
+    
+    if (getResult() == 1){
+        divobj.innerHTML = "No material selected! Please select one! ";
+    }   
+    else{
+        divobj.innerHTML = getResult();
+    }   
+}
+
+function hideTotal()
+{
+    var divobj = document.getElementById('totalPrice');
+    divobj.style.display='none';
+}
+
+function getMeasurementsHtml() {
+    document.getElementById("tempArea").innerHTML = temp_var;
+    document.getElementById("adcArea").innerHTML = adc_var;
+    document.getElementById("resArea").innerHTML = res_var;
+    document.getElementById("muxArea").innerHTML = mux_var;
+}
+
+function myFunction() {
+    location.reload();
+}
+
+</script>
+
+<style>
+table{
+    border: 2px solid black;
+    border-collapse: collapse;
+    width:80%;}
+th {
+    background-color: black; 
+    color: white; 
+    border: 2px solid black; 
+    padding: 10px;
+}
+td { 
+    border: 2px solid black; 
+    padding: 15px; 
+    text-align: center;
+} 
+    tr:nth-child(even) { 
+    background-color: #eee;
+}
+
+.wrapper {
+    text-align: center;
+}
+
+.button {
+    position: auto;
+    top: 80%;
+}
+
+</style>
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+<body>
+
+<form id="materialform">
+<table align='center'>
+<tr>
+    <th>Data Type</th>
+    <th>Value</th></tr>
+<tr>
+    <td>Temperature </td>
+    <td><p id="tempArea"> </p></tr>
+<tr>
+    <td>ADC </td>
+    <td><p id="adcArea"> </p></td>
+</tr>
+<tr>
+    <td>Resistor </td>
+    <td><p id="resArea"> </p></td>
+</tr>
+<tr>
+    <td>Mux </td>
+    <td><p id="muxArea"> </p></td>
+</tr>
+<tr>
+    <td> Moisture <body onload='hideTotal(),getMeasurementsHtml()'>
+      
+       <select id="materialList" name='filling' onchange="calculateTotal()">
+           <option value="None">Select Material</option>
+           <option value="Material1">Material 1</option>
+           <option value="Material2">Material 2</option>
+           <option value="Material3">Material 3</option>
+           <option value="Material4">Material 4</option>
+           <option value="Material5">Material 5</option>
+           <option value="Material6">Material 6</option>
+           <option value="Material7">Material 7</option>
+           <option value="Material8">Material 8</option>
+           <option value="Material9">Material 9</option>
+        </select>
+        <br/><br/>
+    </td> 
+    <td>
+        <div id="totalPrice"></div>
+        <output name="totalamount" ></output>
+    </td>
+</tr>
+</table>
+</form><br/>
+<div class="wrapper">
+    <button class="button" onclick="myFunction()">Reload Page</button>
+</div>  
+</body>
+</html>
