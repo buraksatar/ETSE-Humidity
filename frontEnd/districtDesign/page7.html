@@ -1,20 +1,33 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <meta http-equiv="Content-Type" content="1"/>
+    <meta http-equiv="refresh" content="5; URL=192.168.4.1">
     <title>Moisture Material</title>
+    <script 
+        type="text/javascript"
+        src="http://code.jquery.com/jquery-1.10.1.min.js">
+    </script>
 </head>
 
+
+<!--
 <script>
-var adc_var = adc
-var temp_var = temp
-var res_var = res
+setTimeout(function(){
+   window.location.reload(1);
+}, 500);
+</script> -->
+
+<script>
+    var adc_var = adc
+    var temp_var = temp
+    var res_var = res
 </script>
 
-<script id="mainscript">
+<script>
 function getCalculate(a,b,c)
  {
-     var result1 = a * res_var ^ b + c;
+     var result1 = a * (res_var ^ b) + c;
      return result1;
  }
  
@@ -70,6 +83,7 @@ function hideTotal()
 function getMeasurementsHtml() {
     document.getElementById("tempArea").innerHTML = temp_var;
     document.getElementById("adcArea").innerHTML = adc_var;
+    document.getElementById("resArea").innerHTML = res_var;
 }
 
 </script>
@@ -98,7 +112,7 @@ td {
 <meta charset='UTF-8'> 
 <meta name='viewport' content='width=device-width', initial-scale=1.0></head>
 
-
+<body>
 
 <form id="materialform">
 <table align='center'>
@@ -112,11 +126,10 @@ td {
     <td>ADC </td>
     <td><p id="adcArea"> </p></td>
 </tr>
-
-<script>
-        var element = document.getElementById("abc").innerHTML = document.getElementById("mainscript");
-</script>
-
+<tr>
+    <td>Resistor </td>
+    <td><p id="resArea"> </p></td>
+</tr>
 <tr>
     <td> Moisture <body onload='hideTotal(),getMeasurementsHtml()'>
       
