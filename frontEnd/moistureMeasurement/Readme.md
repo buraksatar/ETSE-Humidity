@@ -3,3 +3,5 @@ at 23.09.2016
 
 Dynamic website,
 At first using matlab curve fitting, prepared 
+
+Using .css, .js and .html file together
