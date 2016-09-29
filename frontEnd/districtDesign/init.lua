@@ -52,7 +52,7 @@ function measureTemp()
     reg = read_reg(LM75_addr,2) --for brd#3
     temp=10*tonumber(string.byte(reg,1))+(tonumber(string.byte(reg,2))/32)
   --  print(string.format("%x %x \r\n", string.byte(reg,1),string.byte(reg,2)))
-    print(string.format("Temperature= %d.%d \r\n",temp/10,temp-(temp/10)*10)) 
+   print(string.format("Temperature= %d.%d \r\n",temp/10,temp-(temp/10)*10)) 
     return temp
 end
 ------------------------------
@@ -132,7 +132,6 @@ end
 -------------Here be main measuring setup
 setmux(0,0,0)
 currMeasure=0
-currTemp=(measureTemp())
 --temp/10,temp-(temp/10)*10)
 measures={}
 measurecounter=0
@@ -146,7 +145,7 @@ function makeMeasure()
     measurecounter=measurecounter+1
     if(measurecounter==10) then measurecounter=0 end
     
-    print ("ADC "..currMeasure.." MUX "..currMUX.." R="..adc2r(currMeasure,currMUX))
+    print ("ADC "..currMeasure.." Temp " ..measureTemp().." MUX "..currMUX.." R="..adc2r(currMeasure,currMUX))
     if (currMeasure<minMval and currMUX<6) then
         currMUX=currMUX+1
         mux(currMUX)
@@ -170,10 +169,10 @@ srv:listen(80, function(conn)
                 "Content-Type: text/html; charset=UTF-8\r\n\r\n"..
                 " <!DOCTYPE html>";
         buf = buf.."<head><script>";
-        buf = buf..'var res='..adc2r(currMeasure,currMUX)..' </script>';
+        buf = buf..'var temp='..measureTemp()..' </script>';
         buf = buf..'<script>var adc='..currMeasure..' </script>';
-        buf = buf..'<script>var temp='..currTemp..' </script>';
-        buf = buf..'<script>var mux='..currMUX..' </script>';  
+        buf = buf..'<script>var res='..adc2r(currMeasure,currMUX)..' </script>'; 
+        buf = buf..'<script>var mux='..currMUX..' </script>';         
         sck:send(buf,
                 function()
                 Sendfile(sck, "page.html") 
