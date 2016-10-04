@@ -8,6 +8,7 @@ learn ip
 
 $ hostname -I
 
+
 2 - Get Socket.IO, Node.js and the MQTT client
 
 $ wget http://node-arm.herokuapp.com/node_latest_armhf.deb
@@ -21,6 +22,7 @@ $ cd /var/www
 $ sudo npm install mqtt
 
 $ sudo npm install socket.io 
+
 
 3- Test Your Node.js and MQTT client
 
