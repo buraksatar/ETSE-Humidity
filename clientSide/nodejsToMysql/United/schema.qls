@@ -1,0 +1,7 @@
+CREATE TABLE newDatas (
+  id     INT PRIMARY KEY AUTO_INCREMENT,
+  temp   TEXT         NOT NULL,
+  res   TEXT         NOT NULL,
+  adc   TEXT         NOT NULL,
+  mux   TEXT         NOT NULL
+);
