@@ -22,7 +22,9 @@ client.on('message', function (topic, message) {
 
   var dataArray = {
     temp: message.toString(),
-    
+    res: message.toString(),
+    adc: message.toString(),
+    mux: message.toString()
   };
 
 var query = connection.query('insert into newDatas set ?', dataArray, function (err, result) {
