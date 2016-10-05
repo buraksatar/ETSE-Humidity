@@ -164,7 +164,7 @@ local function mqtt_start()
 
         tmr.stop(6)
         tmr.alarm(6, 5000, 1, send_ping)
-        tmr.register(0, 2000, tmr.ALARM_AUTO, register_myself)
+        tmr.register(0, 5000, tmr.ALARM_AUTO, register_myself)
         tmr.start(0);
     end)
 
