@@ -6,3 +6,6 @@ CREATE TABLE newDatas (
   mux   TEXT         NOT NULL,
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+SELECT DATE(time) from newDatas;
+SELECT TIME(time) from newDatas;
