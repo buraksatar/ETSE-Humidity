@@ -3,5 +3,6 @@ CREATE TABLE newDatas (
   temp   TEXT         NOT NULL,
   res   TEXT         NOT NULL,
   adc   TEXT         NOT NULL,
-  mux   TEXT         NOT NULL
+  mux   TEXT         NOT NULL,
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
