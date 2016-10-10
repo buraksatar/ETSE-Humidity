@@ -1,4 +1,4 @@
-CREATE TABLE newDatas (
+CREATE TABLE sensor1 (
   id     INT PRIMARY KEY AUTO_INCREMENT,
   temp   TEXT         NOT NULL,
   res   TEXT         NOT NULL,
@@ -10,8 +10,10 @@ CREATE TABLE newDatas (
 
 
 
-SELECT DATE(time) from newDatas;
+SELECT DATE(time) from sensor1;
 
-SELECT TIME(time) from newDatas;
+SELECT TIME(time) from sensor1;
+
+select * from sensor1;
 
 
