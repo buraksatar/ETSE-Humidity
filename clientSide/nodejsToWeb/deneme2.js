@@ -1,9 +1,29 @@
-var http = require('http');
+var express = require('express');
+var app = express();
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'HADIBAKALIM',
+  database: 'datas'
+});
 
-var server = http.createServer(function(req, res) {
-  res.end('Hello from NodeJS!\n');
-  console.log('Someone visited our web server!');
-})
+connection.connect();
 
-server.listen(3000, 'localhost');
-console.log("NodeJS web server running on 0.0.0.0:3000");
+connection.query('SELECT * FROM sensor1',function(err,rows){
+  if(err) throw err;
+
+  console.log('Data received from Db:\n');
+  console.log(rows);
+
+});
+
+app.get('/', function (req, res) {
+
+  var deneme = 'denemeLANBU';
+  res.send(deneme);
+});
+
+app.listen(3000, function () {
+  console.log('Example app listening on port 3000!');
+});
