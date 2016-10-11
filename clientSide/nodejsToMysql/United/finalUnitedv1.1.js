@@ -4,7 +4,6 @@ var mysql = require('mysql');
 
 client.on('connect', function () {
   client.subscribe('/data/8794332')
-  client.subscribe('/data/1496449')
 })
  
 
