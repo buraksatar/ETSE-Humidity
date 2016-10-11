@@ -8,12 +8,36 @@ CREATE TABLE sensor1 (
 );
 
 
+CREATE TABLE sensor2 (
+  id     INT PRIMARY KEY AUTO_INCREMENT,
+  temp   TEXT         NOT NULL,
+  res   TEXT         NOT NULL,
+  adc   TEXT         NOT NULL,
+  mux   TEXT         NOT NULL,
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE sensor3 (
+  id     INT PRIMARY KEY AUTO_INCREMENT,
+  temp   TEXT         NOT NULL,
+  res   TEXT         NOT NULL,
+  adc   TEXT         NOT NULL,
+  mux   TEXT         NOT NULL,
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 
 SELECT DATE(time) from sensor1;
+SELECT DATE(time) from sensor2;
+SELECT DATE(time) from sensor3;
+
 
 SELECT TIME(time) from sensor1;
+SELECT TIME(time) from sensor2;
+SELECT TIME(time) from sensor3;
+
 
 select * from sensor1;
-
-
+select * from sensor2;
+select * from sensor3;
