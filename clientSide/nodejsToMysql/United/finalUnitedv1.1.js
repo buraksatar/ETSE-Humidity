@@ -4,6 +4,7 @@ var mysql = require('mysql');
 
 client.on('connect', function () {
   client.subscribe('/data/8794332')
+  client.subscribe('/data/1496449')
 })
  
 
@@ -31,22 +32,23 @@ client.on('message', function (topic, message) {
    
 
   var query = connection.query('INSERT INTO sensor1 SET ?', post , function (err, result) {
+     
      if (err) {
-      console.error(err);
-      return;
+       console.error(err);
+       return;
      }
   
-  console.error(result);
+     console.error(result);
 
-  connection.query('SELECT * FROM sensor1',function(err,rows){
-  if(err) throw err;
+     connection.query('SELECT * FROM sensor1',function(err,rows){
+        if(err) throw err;
 
-  console.log('Data received from Db:\n');
-  console.log(rows);
+        console.log('Data received from Db:\n');
+        console.log(rows);
 
-});
+     });
   
 
-});
+  });
 
 })
