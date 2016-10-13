@@ -8,3 +8,7 @@ $ sudo netstat -anp tcp || grep 3000
 then
 
 $ kill -9 'number'
+
+for all:
+
+$ killall -9 node
