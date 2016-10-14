@@ -5,6 +5,11 @@
 <head>
     <% include ../partials/head %>
 </head>
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
 <body class="container">
 
     <header>
@@ -13,24 +18,13 @@
 
     <main>
         <div class="jumbotron">
-            <h1>This is great</h1>
-            <p>Welcome to templating using EJS</p>
+            <h1>ETSE-UV</h1>
+            <p>Express & EJS just trying</p>
             
-	    <h2>Variable</h2>
-	    <p><%= tagline %></p>
-	    
-	    <h2>Loop</h2>
-	    <ul>
-    		<% drinks.forEach(function(drink) { %>
-        	   <li><%= drink.name %> - <%= drink.drunkness %></li>
-    		<% }); %>
-	    </ul>
-	    
- 	    <h2>Variable</h2>
-	    <p><%= abc %></p>
-
         </div>
     </main>
+
+ 
 
     <footer>
         <% include ../partials/footer %>
