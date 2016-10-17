@@ -1,0 +1,84 @@
+<!-- views/pages/about.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <% include ../partials/head %>
+</head>
+
+<style>
+table{
+    border: 2px solid black;
+    border-collapse: collapse;
+    table-layout:fixed
+    }
+th {
+    background-color: black;
+    color: white; 
+    border: 2px solid black; 
+    padding: 10px;
+
+}
+td { 
+    border: 2px solid black; 
+    padding: 15px; 
+    text-align: center;
+} 
+    tr:nth-child(even) { 
+    background-color: #eee;
+}
+.wrapper {
+    text-align: center;
+}
+.button {
+    position: auto;
+    top: 80%;
+}
+p {
+  white-space: pre;
+ }
+</style>
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container" >
+
+    <header>
+        <% include ../partials/header %>
+    </header>
+    <form id="materialform">
+<table align='center', text-align:'center';>
+<tr>
+    <th>ID </th>
+    <th>Temperature</th>
+    <th>ADC Data</th>
+    <th>Resistor</th>
+    <th>Mux Data</th>
+    <th>Deneme</th>
+</tr>
+<tr><td><p id="tempId"><%= tagId %></p></td>
+
+    <% for (var i = 0; i < tagTemp.length; i++) { %>
+       <td><p id="tempArea"><%=tagTemp[i]%></p></td>
+    <% } %> 
+    <td><p id="adcArea"> <%= tagAdc %>  </p>
+    <td><p id="resArea"> <%= tagRes %> </p></td>
+    <td><p id="muxArea"> <%= tagMux %></p> </td>
+
+
+</tr>
+</table>
+</form><br/>
+<div class="wrapper">
+    <button class="button" onclick="myFunction()">Reload Page</button>
+</div>  
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+    
+</body>
+</html>
