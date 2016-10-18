@@ -18,132 +18,134 @@ app.get('/', function(req, res) {
     		res.render('pages/index');
 	});
 
-var query = connection.query('SELECT * FROM sensor1;', function (error, rows, fields) 
+
+
+connection.query('SELECT * FROM sensor1;', function (error1, rows1, fields1) 
 {    	
 	// sensor1 page
-	app.get('/sensor1', function(req, res) {
+	app.get('/sensor1', function(req, res1) {
 
 		// use res.render to load up an ejs view file
-    		res.render('pages/sensor1', {
-        		tagTemp: tagTemp,
-			tagRes: tagRes,
-			tagAdc: tagAdc,
-			tagMux: tagMux,
-			tagId: tagId
+    		res1.render('pages/sensor1', {
+        		tagTemp1: tagTemp1,
+			tagRes1: tagRes1,
+			tagAdc1: tagAdc1,
+			tagMux1: tagMux1,
+			tagId1: tagId1
     		});
 	});
 
-	var tagTemp =[]; 
-	for(var i=0;i<rows.length;i++){
-     		tagTemp.push(rows[i].temp);
+	var tagTemp1 =[]; 
+	for(var i=0;i<rows1.length;i++){
+     		tagTemp1.push(rows1[i].temp);
         }
  
-	var tagRes=[];
+	var tagRes1=[];
 	//var tagRes = rows[0].res;   	   
-	for(var i=0;i<rows.length;i++){
-     		tagRes.push(rows[i].res);
+	for(var i=0;i<rows1.length;i++){
+     		tagRes1.push(rows1[i].res);
         }
 
-	var tagAdc=[]; 	   
-	for(var i=0;i<rows.length;i++){
-     		tagAdc.push(rows[i].adc);
+	var tagAdc1=[]; 	   
+	for(var i=0;i<rows1.length;i++){
+     		tagAdc1.push(rows1[i].adc);
         }
 
-	var tagMux=[]; 
-	for(var i=0;i<rows.length;i++){
-     		tagMux.push(rows[i].mux);
+	var tagMux1=[]; 
+	for(var i=0;i<rows1.length;i++){
+     		tagMux1.push(rows1[i].mux);
         }
   	
-        var tagId=[];	   
-	for(var i=0;i<rows.length;i++){
-     		tagId.push(rows[i].id);
+        var tagId1=[];	   
+	for(var i=0;i<rows1.length;i++){
+     		tagId1.push(rows1[i].id);
         }
 });
 
 
 
-var query = connection.query('SELECT * FROM sensor2;', function (error, rows, fields) 
+connection.query('SELECT * FROM sensor2;', function (error2, rows2, fields2) 
 {    	
 	// sensor2 page
-	app.get('/sensor2', function(req, res) {
+	app.get('/sensor2', function(req, res2) {
 
 		// use res.render to load up an ejs view file
-    		res.render('pages/sensor2', {
-        		tagTemp: tagTemp,
-			tagRes: tagRes,
-			tagAdc: tagAdc,
-			tagMux: tagMux,
-			tagId: tagId
+    		res2.render('pages/sensor2', {
+        		tagTemp2: tagTemp2,
+			tagRes2: tagRes2,
+			tagAdc2: tagAdc2,
+			tagMux2: tagMux2,
+			tagId2: tagId2
     		});
 	});
 
-	var tagTemp =[]; 
-	for(var i=0;i<rows.length;i++){
-     		tagTemp.push(rows[i].temp);
+	var tagTemp2 =[]; 
+	for(var i=0;i<rows2.length;i++){
+     		tagTemp2.push(rows2[i].temp);
         }
  
-	var tagRes=[];
-	//var tagRes = rows[0].res;   	   
-	for(var i=0;i<rows.length;i++){
-     		tagRes.push(rows[i].res);
+	var tagRes2=[];
+	//var tagRes = rows2[0].res;   	   
+	for(var i=0;i<rows2.length;i++){
+     		tagRes2.push(rows2[i].res);
         }
 
-	var tagAdc=[]; 	   
-	for(var i=0;i<rows.length;i++){
-     		tagAdc.push(rows[i].adc);
+	var tagAdc2=[]; 	   
+	for(var i=0;i<rows2.length;i++){
+     		tagAdc2.push(rows2[i].adc);
         }
 
-	var tagMux=[]; 
-	for(var i=0;i<rows.length;i++){
-     		tagMux.push(rows[i].mux);
+	var tagMux2=[]; 
+	for(var i=0;i<rows2.length;i++){
+     		tagMux2.push(rows2[i].mux);
         }
   	
-        var tagId=[];	   
-	for(var i=0;i<rows.length;i++){
-     		tagId.push(rows[i].id);
+        var tagId2=[];	   
+	for(var i=0;i<rows2.length;i++){
+     		tagId2.push(rows2[i].id);
         }
 });
 
 
-var query = connection.query('SELECT * FROM sensor3;', function (error, rows, fields) 
+connection.query('SELECT * FROM sensor3;', function (error, rows, fields) 
 {    	
 	// sensor3 page
 	app.get('/sensor3', function(req, res) {
 
 		// use res.render to load up an ejs view file
     		res.render('pages/sensor3', {
-        		tagTemp: tagTemp,
-			tagRes: tagRes,
-			tagAdc: tagAdc,
-			tagMux: tagMux,
-			tagId: tagId
+        		tagTemp3: tagTemp3,
+			tagRes3: tagRes3,
+			tagAdc3: tagAdc3,
+			tagMux3: tagMux3,
+			tagId3: tagId3
     		});
 	});
 
-	var tagTemp =[]; 
+	var tagTemp3 =[]; 
 	for(var i=0;i<rows.length;i++){
-     		tagTemp.push(rows[i].temp);
+     		tagTemp3.push(rows[i].temp);
         }
  
-	var tagRes=[];
-	//var tagRes = rows[0].res;   	   
+	var tagRes3=[];
+	//var tagRes3 = rows[0].res;   	   
 	for(var i=0;i<rows.length;i++){
-     		tagRes.push(rows[i].res);
+     		tagRes3.push(rows[i].res);
         }
 
-	var tagAdc=[]; 	   
+	var tagAdc3=[]; 	   
 	for(var i=0;i<rows.length;i++){
-     		tagAdc.push(rows[i].adc);
+     		tagAdc3.push(rows[i].adc);
         }
 
-	var tagMux=[]; 
+	var tagMux3=[]; 
 	for(var i=0;i<rows.length;i++){
-     		tagMux.push(rows[i].mux);
+     		tagMux3.push(rows[i].mux);
         }
   	
-        var tagId=[];	   
+        var tagId3=[];	   
 	for(var i=0;i<rows.length;i++){
-     		tagId.push(rows[i].id);
+     		tagId3.push(rows[i].id);
         }
 });
 
