@@ -51,6 +51,7 @@ p {
     <form action="" id="materialform" onsubmit="return false;">
                 <select id="materialList" name='filling' onchange="calculateTotal()">
                 <option value="None">Select The Sensor</option>
+		<option value="Sensor1">Sensor 1</option>
                 <option value="Sensor2">Sensor 2</option>
                 <option value="Sensor3">Sensor 3</option>
                 </select>            
@@ -79,10 +80,10 @@ p {
 <script>
 	 var filling_material= new Array();
 		filling_material["None"]= 0;
+		filling_material["Sensor1"]= 1;
 		filling_material["Sensor2"]= 2;
 		filling_material["Sensor3"]= 3;
  
-
 	function getResult()
 	{
     		var moistureResult=0;
@@ -92,22 +93,22 @@ p {
      		var selectedFilling = theForm.elements["materialList"];
      
     		moistureResult = filling_material[selectedFilling.value];
-
     		//finally return moistureResult
     		return moistureResult;
 	}
-
    
 	function calculateTotal()
 	{    
-    		if (getResult() == 2){
+    		if (getResult() == 1){
+			window.location.href = '/sensor1'
+    		}	
+		else if (getResult() == 2){
 			window.location.href = '/sensor2'
     		}	
     		else if (getResult() == 3){
 			window.location.href = '/sensor3'
-    		}   
+    		}  
 	}
-
 </script>
 
 
