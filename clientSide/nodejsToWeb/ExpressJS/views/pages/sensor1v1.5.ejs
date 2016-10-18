@@ -1,0 +1,119 @@
+<!-- views/pages/about.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <% include ../partials/head %>
+</head>
+
+<style>
+table{
+    border: 1px solid black;
+    border-collapse: collapse;
+    }
+th {
+    background-color: black;
+    color: white; 
+    border: 1px solid black; 
+    padding: 25px;
+
+}
+td { 
+    border: 1px solid black; 
+    padding: 7px; 
+    text-align: center;
+} 
+    tr:nth-child(even) { 
+    background-color: #eee;
+}
+.wrapper {
+    text-align: center;
+}
+.button {
+    position: auto;
+    top: 100%;
+}
+p {
+  white-space: pre;
+ }
+</style>
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container" >
+
+    <header>
+        <% include ../partials/header %>
+    </header>
+    <form action="" id="materialform" onsubmit="return false;">
+                <select id="materialList" name='filling' onchange="calculateTotal()">
+                <option value="None">Select The Sensor</option>
+                <option value="Sensor2">Sensor 2</option>
+                <option value="Sensor3">Sensor 3</option>
+                </select>            
+     </form>
+    <form id="materialform1">
+	<table align='center', text-align:'center';>
+		<tr><th>ID </th>
+    		<th>Temperature</th>
+    		<th>ADC Data</th>
+    		<th>Resistor</th>
+    		<th>Mux Data</th>
+		</tr><tr><td><p id="idArea2"><%tagId1.forEach(function(idObj){%>
+				<%=idObj%><%})%></p></td>
+    			<td><p id="tempArea2"><%tagTemp1.forEach(function(msgObj){%>
+				<%=msgObj%><%})%></p></td>
+    			<td><p id="adcArea2"><%tagAdc1.forEach(function(msgObj){%>
+				<%=msgObj%><%})%></p></td>
+    			<td><p id="resArea2"><%tagRes1.forEach(function(msgObj){%>
+				<%=msgObj%><%})%></p></td>
+    			<td><p id="muxArea2"><%tagMux1.forEach(function(msgObj){%>
+				<%=msgObj%><%})%></p></td>
+		</tr>
+	</table>
+     </form><br/>
+
+<script>
+	 var filling_material= new Array();
+		filling_material["None"]= 0;
+		filling_material["Sensor2"]= 2;
+		filling_material["Sensor3"]= 3;
+ 
+
+	function getResult()
+	{
+    		var moistureResult=0;
+    		//Get a reference to the form id="materialform"
+    		var theForm = document.forms["materialform"];
+    		//Get a reference to the select id="materialList"
+     		var selectedFilling = theForm.elements["materialList"];
+     
+    		moistureResult = filling_material[selectedFilling.value];
+
+    		//finally return moistureResult
+    		return moistureResult;
+	}
+
+   
+	function calculateTotal()
+	{    
+    		if (getResult() == 2){
+			window.location.href = '/sensor2'
+    		}	
+    		else if (getResult() == 3){
+			window.location.href = '/sensor3'
+    		}   
+	}
+
+</script>
+
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+    
+</body>
+</html>
