@@ -122,16 +122,39 @@ p {
 		if ( strUser == "Material1" ){
 	    		var x = document.forms["idForm"].elements["idList"].value;
 	    		divobj.innerHTML = getCalculate(15.84,-0.2576,8.923,calcuRes[x]);
-			//divobj.innerHTML = "gdgfdgdf!!!";
 	
 		}
 		else if ( strUser == "Material2" ){
 			var x = document.forms["idForm"].elements["idList"].value;
-			divobj.innerHTML = getCalculate(13.2,-0.2515,10.77,x);
+			divobj.innerHTML = getCalculate(13.2,-0.2515,10.77,calcuRes[x]);
 		}
 		else if ( strUser == "Material3" ){
 			var x = document.forms["idForm"].elements["idList"].value;
-			divobj.innerHTML = getCalculate(17.06,-0.2832,10.64,x);
+			divobj.innerHTML = getCalculate(17.06,-0.2832,10.64,calcuRes[x]);
+		}
+		else if ( strUser == "Material4" ){
+			var x = document.forms["idForm"].elements["idList"].value;
+			divobj.innerHTML = getCalculate(11.57,-0.2447,9.538,calcuRes[x]);
+		}
+		else if ( strUser == "Material5" ){
+			var x = document.forms["idForm"].elements["idList"].value;
+			divobj.innerHTML = getCalculate(13.07,-0.2664,7.812,calcuRes[x]);
+		}
+		else if ( strUser == "Material6" ){
+			var x = document.forms["idForm"].elements["idList"].value;
+			divobj.innerHTML = getCalculate(11.34,-0.2485,7.965,calcuRes[x]);
+		}
+		else if ( strUser == "Material7" ){
+			var x = document.forms["idForm"].elements["idList"].value;
+			divobj.innerHTML = getCalculate(10.03,-0.3146,12.35,calcuRes[x]);
+		}
+		else if ( strUser == "Material8" ){
+			var x = document.forms["idForm"].elements["idList"].value;
+			divobj.innerHTML = getCalculate(14.62,-0.2774,11.5,calcuRes[x]);
+		}
+		else if ( strUser == "Material9" ){
+			var x = document.forms["idForm"].elements["idList"].value;
+			divobj.innerHTML = getCalculate(13.69,-0.2404,8.352,calcuRes[x]);
 		}
 		else {
 			divobj.innerHTML = "PROBLEM!!!";
