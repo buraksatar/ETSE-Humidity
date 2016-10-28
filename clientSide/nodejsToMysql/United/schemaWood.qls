@@ -1,0 +1,5 @@
+CREATE TABLE material(
+  id     INT PRIMARY KEY AUTO_INCREMENT,
+  wood   TEXT         NOT NULL,
+  type   INT          NOT NULL
+);
