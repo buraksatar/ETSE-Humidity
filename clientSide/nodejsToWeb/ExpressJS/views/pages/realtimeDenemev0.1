@@ -1,0 +1,464 @@
+<!-- views/pages/sensor3.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <% include ../partials/head %>
+    <link rel="stylesheet" type="text/css" href="https://github.com/epochjs/epoch/blob/master/tests/render/css/tests.css">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.css">
+     <style>
+        .test .epoch {
+            width: 750px;
+            height: 500px;
+        }
+      </style>
+</head>
+
+<style>
+
+table{
+    border: 1px solid black;
+    border-collapse: collapse;
+    }
+th {
+    background-color: black;
+    color: white; 
+    border: 1px solid black; 
+    padding: 25px;
+}
+td { 
+    border: 1px solid black; 
+    padding: 7px; 
+    text-align: center;
+} 
+    tr:nth-child(even) { 
+    background-color: #eee;
+}
+
+p {
+  white-space: pre;
+ }
+</style>
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container", onload=generate_table(),graphTheData() >
+
+    
+    <header>
+        <% include ../partials/header %>
+    </header>
+   <form id="materialform2">
+    
+       <select id="materialList2" name='filling2' onChange="location.reload()">
+           	   <option value="None">Select Material</option>
+           	   <option value="Material1" selected>Material 1</option>
+                   <option value="Material2">Material 2</option>
+                   <option value="Material3">Material 3</option>
+		   <option value="Material4">Material 4</option>
+		   <option value="Material5">Material 5</option>
+		   <option value="Material6">Material 6</option>
+		   <option value="Material7">Material 7</option>
+		   <option value="Material8">Material 8</option>
+		   <option value="Material9">Material 9</option>
+        </select>
+        <br/><br/>
+
+               <fieldset>
+		<div id="output1"> </div>
+ 		<div id="totalPrice"> </div>
+		</fieldset>
+       		<output name="totalamount"></output>
+       
+
+
+   </form>
+
+   <form action="" id="materialform" onsubmit="return false;" align="right">
+                <select id="materialList" name='filling' onchange="calculateTotal()">
+                <option value="None">Select The Sensor</option>
+                <option value="Sensor1">Sensor 1</option>
+		<option value="Sensor2">Sensor 2</option>
+                <option value="Sensor3">Sensor 3</option>
+                </select>            
+    </form>
+
+    <div id="area" class="test">
+            <div class="epoch"></div>
+
+	 <button data-index="0">Graph Mux</button>
+         <button data-index="1">Graph Temp</button>
+	 <button data-index="2">Graph ADC</button>
+	 <button data-index="3">Graph Res</button>
+	 <button > Realtime Graph</button>
+</div>
+<script>
+
+// 0 - SOME TRYINGS
+/*
+	//Create array of options to be added
+	var array = ["Volvo","Saab","Mercades","Audi"];
+
+	//Create and append select list
+	var selectList = document.createElement("select");
+	selectList.setAttribute("id", "mySelect");
+	myDiv.appendChild(selectList);
+
+	//Create and append the options
+	for (var i = 0; i < array.length; i++) {
+        	var option = document.createElement("option");
+   		option.setAttribute("value", array[i]);
+    		option.text = array[i];
+    		selectList.appendChild(option);
+	}
+*/
+
+// FOR REAL TIME GRAPH
+
+
+
+//1 - Calculations
+
+	function getCalculate(a,b,c,x){
+ 		var result1 = a * (Math.pow(x, b)) + c;
+     		var result2 = result1.toPrecision(5);
+     		return result2;
+	}
+
+
+//2
+	 var filling_material= new Array();
+		filling_material["None"]= 0;
+		filling_material["Sensor1"]= 1;
+		filling_material["Sensor2"]= 2;
+		filling_material["Sensor3"]= 3;
+ 
+	function getResult()
+	{
+    		var moistureResult=0;
+    		//Get a reference to the form id="materialform"
+    		var theForm = document.forms["materialform"];
+    		//Get a reference to the select id="materialList"
+     		var selectedFilling = theForm.elements["materialList"];
+     
+    		moistureResult = filling_material[selectedFilling.value];
+    		//finally return moistureResult
+    		return moistureResult;
+	}
+   
+	function calculateTotal()
+	{    
+    		if (getResult() == 1){
+			window.location.href = '/sensor1'
+    		}	
+		else if (getResult() == 2){
+			window.location.href = '/sensor2'
+    		}	
+    		else if (getResult() == 3){
+			window.location.href = '/sensor3'
+    		}  
+	}
+
+//3
+
+
+	var idData = [];
+        	<%for(var i=0;i < tagId1.length; i++){ %>
+     			idData.push(<%=tagId1[i]%>);
+        	<% } %>
+
+        var tempData = [];
+        	<%for(var i=0;i < tagId1.length; i++){ %>
+     			tempData.push(<%=tagTemp1[i]%>);
+       		<% } %>
+
+	var tempAdc = [];
+        	<%for(var i=0;i < tagId1.length; i++){ %>
+     			tempAdc.push(<%=tagAdc1[i]%>);
+        	<% } %>
+
+	var tempRes = [];
+        	<%for(var i=0;i < tagId1.length; i++){ %>
+     			tempRes.push(<%=tagRes1[i]%>);
+        	<% } %>
+
+	var tempMux = [];
+        	<%for(var i=0;i < tagId1.length; i++){ %>
+     			tempMux.push(<%=tagMux1[i]%>);
+        	<% } %>
+
+	var woodIdData = [];
+        	<%for(var i=0;i < tagIdWood1.length; i++){ %>
+     			woodIdData.push(<%=tagIdWood1[i]%>);
+        	<% } %>
+
+	var typeData = [];
+       		<%for(var i=0;i < tagIdWood1.length; i++){ %>
+     			typeData.push(<%=tagType1[i]%>);
+        	<% } %>
+
+	var coData = [];
+       		<%for(var i=0;i < tagIdWood1.length; i++){ %>
+     			coData.push(<%=tagType1[i]%>);
+        	<% } %>
+
+	var material1Datas = [];
+			
+
+	console.log(coData);
+
+/*
+  	var selectList = document.createElement("select");
+	selectList.setAttribute("id", "mySelect");
+	myDiv.appendChild(selectList);
+
+	for (var i = 0; i < typeData.length; i++) {
+        	var option = document.createElement("option");
+   		option.setAttribute("value", typeData[i]);
+    		option.text = typeData[i];
+    		selectList.appendChild(option);
+	}
+
+*/
+
+
+	function generate_table() {
+		// get the reference for the body
+  		var body = document.getElementsByTagName("body")[0];
+  		
+ 		// creates a <table> element and a <tbody> element
+  		var tbl     = document.createElement("table");
+		var divTable = document.createElement("div");
+		divTable.id = 'divTableId';
+  		var tblBody = document.createElement("tbody");
+ 	
+		var row1 = document.createElement("tr");
+		var TH1 = document.createElement("th");
+     		var th1 = document.createTextNode("ID");
+    		TH1.appendChild(th1);
+		row1.appendChild(TH1)
+		tblBody.appendChild(row1)
+
+		var TH2 = document.createElement("th");
+     		var th2 = document.createTextNode("Temperature");
+    		TH2.appendChild(th2);
+		row1.appendChild(TH2)
+		tblBody.appendChild(row1)
+
+		var TH3 = document.createElement("th");
+     		var th3 = document.createTextNode("ADC");
+    		TH3.appendChild(th3);
+		row1.appendChild(TH3)
+		tblBody.appendChild(row1)
+
+		var TH4 = document.createElement("th");
+     		var th4 = document.createTextNode("Resistor");
+    		TH4.appendChild(th4);
+		row1.appendChild(TH4)
+		tblBody.appendChild(row1)
+
+		var TH5 = document.createElement("th");
+     		var th5 = document.createTextNode("Mux");
+		TH5.appendChild(th5);
+		row1.appendChild(TH5)
+		tblBody.appendChild(row1)
+
+		var TH6 = document.createElement("th");
+     		var th6 = document.createTextNode("Moisture");
+    		TH6.appendChild(th6);
+		row1.appendChild(TH6)
+		tblBody.appendChild(row1)
+		
+		var e = document.getElementById("materialList2");
+		strUser = e.options[e.selectedIndex].value;	
+		
+
+  		// creating all cells
+  		for(var i=0;i < <%=tagId1.length%>; i++){
+    			// creates a table row
+    			var row = document.createElement("tr");
+   		
+			for (var j = 0; j < 1; j++) {
+      				var cell = document.createElement("td");
+      				var cellText = document.createTextNode(idData[i]);
+      				cell.appendChild(cellText);
+      				row.appendChild(cell);
+    			}
+
+			for (var j = 1; j < 2; j++) {
+      				var cell = document.createElement("td");
+      				var cellText = document.createTextNode(tempData[i]);
+      				cell.appendChild(cellText);
+      				row.appendChild(cell);
+    			}
+
+			for (var j = 2; j < 3; j++) {
+      				var cell = document.createElement("td");
+      				var cellText = document.createTextNode(tempAdc[i]);
+      				cell.appendChild(cellText);
+      				row.appendChild(cell);
+    			}
+
+			for (var j = 3; j < 4; j++) {
+      				var cell = document.createElement("td");
+      				var cellText = document.createTextNode(tempRes[i]);
+      				cell.appendChild(cellText);
+      				row.appendChild(cell);
+    			}
+
+			for (var j = 4; j < 5; j++) {
+      				var cell = document.createElement("td");
+      				var cellText = document.createTextNode(tempMux[i]);
+      				cell.appendChild(cellText);
+      				row.appendChild(cell);
+    			}
+
+
+			for (var j = 5; j < 6; j++) {
+      				var cell = document.createElement("td");
+				
+				if ( strUser == "Material1" ){
+					var preCellText = getCalculate(15.84,-0.2576,8.923,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else if ( strUser == "Material2" ){
+					var preCellText = getCalculate(13.2,-0.2515,10.77,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else if ( strUser == "Material3" ){
+					var preCellText = getCalculate(17.06,-0.2832,10.64,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else if ( strUser == "Material4" ){
+					var preCellText = getCalculate(11.57,-0.2447,9.538,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else if ( strUser == "Material5" ){
+					var preCellText = getCalculate(13.07,-0.2664,7.812,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else if ( strUser == "Material6" ){
+					var preCellText = getCalculate(11.34,-0.2485,7.965,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else if ( strUser == "Material7" ){
+					var preCellText = getCalculate(10.03,-0.3146,12.35,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else if ( strUser == "Material8" ){
+					var preCellText = getCalculate(14.62,-0.2774,11.5,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else if ( strUser == "Material9" ){
+					var preCellText = getCalculate(13.69,-0.2404,8.352,tempRes[i]);
+					cellText = document.createTextNode(preCellText.toString());
+        				material1Datas.push(preCellText);
+				}
+				else {
+					var cellText = document.createTextNode("Select Material Type");
+				}
+
+     				cell.appendChild(cellText);
+      				row.appendChild(cell);
+    			}
+			
+    			// add the row to the end of the table body
+    			tblBody.appendChild(row);
+  		}
+		
+ 		//var table = document.getElementById("tbl");
+		//$('table').refresh();
+  		// put the <tbody> in the <table>
+		
+  		tbl.appendChild(tblBody);
+		
+		divTable.appendChild(tbl);
+  		// appends <table> into <body>
+  		body.appendChild(divTable);
+  		// sets the border attribute of tbl to 2;
+  		tbl.setAttribute("border", "2");
+
+	}
+
+/*
+
+4th main part of the code - this is for graph the data
+
+*/
+
+//REAL TIME GRAPH
+
+	var nextTime = (function() {
+                var currentTime = parseInt(new Date().getTime() / 1000);
+                return function() { return currentTime++; }
+            })();
+			
+	var data = [{ label: 'A', values: [] }];
+        var interval = null;		
+	var y = material1Datas[0];
+        var time = nextTime();
+	data[0].values.push({time: time, y: y});
+
+	//main function for graph, loaded onload
+	function graphTheData() {
+		
+		$(function() {
+
+			 var chart = $('#area .epoch').epoch({
+					type: 'time.line',
+					data: data,
+					axes: ['left', 'bottom'],
+					range: [5, 15]
+				});
+			
+			 
+			   for(var i=0;i < 2; i++){ 
+				var pushPoint = function() {
+                    			y = material1Datas[i],
+                    			time = nextTime();
+					chart.push([{ time: time, y: y}]);
+				};
+			
+			/*
+				var pushPoint = function() {
+                    			y = material1Datas[i],
+                    			time = nextTime();
+					chart.push([{ time: time, y: y}]);
+				};
+			*/
+			
+				//clearInterval(interval);
+				pushPoint();
+				interval = setInterval(pushPoint, 1000);
+
+				
+			}
+
+        	});
+		
+	}
+
+
+
+</script>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
