@@ -1,0 +1,41 @@
+<!-- views/pages/sensor3.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <% include ../partials/head %>
+    <link rel="stylesheet" type="text/css" href="https://github.com/epochjs/epoch/blob/master/tests/render/css/tests.css">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.css">
+     
+</head>
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container">
+
+    
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+
+<script>
+	
+	var latestData = <%=data%>;
+        	
+	console.log(latestData);			
+
+</script>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
