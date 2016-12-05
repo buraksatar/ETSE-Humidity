@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//WAPFORUM//DTD XHTML Mobile 1.0//EN" "http://www.wapforum.org/DTD/xhtml-mobile10.dtd\">
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<h1>Real Time</h1>
+<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="jquery/iphone-style-checkboxes.js"></script>
+<link rel="stylesheet" href="style.css">
+<script>
+  $(document).ready(function() {
+        $(':checkbox').iphoneStyle({
+            onChange: function(elem,val) {
+                if (val) {
+                    socket.emit('publish', {topic:"/test",payload:"on"});
+                } else {
+                    socket.emit('publish', {topic:"/test",payload:"off"});
+                }
+            }
+        });
+    });
+</script>
+<script>
+  var socket = io.connect('test.mosquitto.org:8080');
+  socket.on('connect', function () {
+    socket.on('mqtt', function (msg) {
+      console.log(msg.topic+' '+msg.payload);
+      if (msg.payload == "off") {
+        if ($('input[name=led]').is(':checked')) {
+          $('input[name=led]').prop('checked',false).change();
+        }
+      }
+      if (msg.payload == "on") {
+        if (!$('input[name=led]').is(':checked')) {
+          $('input[name=led]').prop('checked',true).change();
+        }
+      }
+    });
+    socket.emit('subscribe',{topic:'/test'});
+  });
+</script>
+</head>
+ 
+<body>
+  <div class='table'>
+    <table>
+      <tr>
+        <td style='vertical-align: middle !important;'>
+          LED:
+        </td>
+        <td>
+          <input name="led" checked='checked' class='yesno' type='checkbox' />
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>
