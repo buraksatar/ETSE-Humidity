@@ -1,9 +1,9 @@
 This is for configuration 
 
 1- open the config file
-
+```
 $ sudo leafpad /etc/mosquitto/mosquitto.conf
-
+```
 2- on that file, delete that line  
 
 $ include_dir /etc/mosquitto/mosquitto.conf
