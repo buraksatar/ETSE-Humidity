@@ -27,7 +27,6 @@ CREATE TABLE sensor3 (
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
 SELECT DATE(time) from sensor1;
 SELECT DATE(time) from sensor2;
 SELECT DATE(time) from sensor3;
