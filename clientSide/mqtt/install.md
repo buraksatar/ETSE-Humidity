@@ -1,9 +1,11 @@
-Login to Ubuntu Linux with root privileges ( sudo )
+It has to be MQTT libraries on Ubuntu.
+
 Add the mosquitto repository by given below commands
 
-1.
-$sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
-$sudo apt-get update
+1. Get the 
+
+$ sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
+$ sudo apt-get update
 
 2.
 Execute the given below command to install the Mosquitto broker package
