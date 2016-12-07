@@ -1,6 +1,8 @@
-First tryings to work it out in ExpressJS
-To install ExpressJS
 We use ExpressJS framework.
+First tryings to work it out in ExpressJS
+
+To install ExpressJS
+
 ```
 $ sudo npm install -g express-generator
 $ sudo express projectuno
