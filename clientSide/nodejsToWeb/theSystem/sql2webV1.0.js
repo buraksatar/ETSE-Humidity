@@ -43,6 +43,19 @@ connection.query('SELECT * FROM sensor1;', function (error1, rows1, fields1)
     		});
 	});
 
+	app.get('/RealTimeDeneme2', function(req, res1) {
+
+		// use res.render to load up an ejs view file
+    		res1.render('pages/RealTimeDeneme2', {
+        		tagTemp1: tagTemp1,
+				tagRes1: tagRes1,
+				tagAdc1: tagAdc1,
+				tagMux1: tagMux1,
+				tagId1: tagId1,
+				tagTim1: tagTim1
+    		});
+	});
+
 	var tagTemp1 =[]; 
 	for(var i=0;i<rows1.length;i++){
      		tagTemp1.push(rows1[i].temp);
