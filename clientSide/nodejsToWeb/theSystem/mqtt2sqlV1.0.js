@@ -15,7 +15,7 @@ client.on('connect', function () {
   client.subscribe('/data/1505613')
 })
  
-//database settings
+//database settingsd
 var connection = mysql.createConnection({
   	host: 'localhost',
   	user: 'root',
@@ -25,7 +25,7 @@ var connection = mysql.createConnection({
 });
 
 
-// set the view engine to ejs
+// set the view engine to ejsg
 app.set('view engine', 'ejs');
 
 //main page
@@ -200,5 +200,5 @@ client.on('message', function (topic, message) {
 })
 
 
-app.listen(8080);
+//app.listen(8080);
 console.log('the port: 8080, is active ');
