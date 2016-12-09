@@ -63,38 +63,52 @@ var pageNameOfSensor2 = '/pageofSensor2';
 var pageNameOfSensor3 = '/pageofSensor3';
 var rowsNameOfSensor1 = 'rows1';
 var rowsNameOfSensor2 = 'rows2';
+var rowsNameOfSensor3 = 'rows3';
 
 getDatasFromDatabase(tableNameOfSensor1, pageNameOfSensor1, rowsNameOfSensor1);
 getDatasFromDatabase(tableNameOfSensor2, pageNameOfSensor2, rowsNameOfSensor2);
+getDatasFromDatabase(tableNameOfSensor3, pageNameOfSensor3, rowsNameOfSensor3);
+
 
 function getDatasFromDatabase (tableNameOfSensor,pageNameOfSensor, rowsNameOfSensor) {
 	//making connection with sensor1 table in Database
-	connection.query('SELECT * FROM ' + tableNameOfSensor + ';', function (error, rowsNameOfSensor, fields) 
-	{    	
+	   	
 		// call the webpage with that name
 		app.get(pageNameOfSensor, function(req, res) {
 
-			// use res.render to load up an ejs view file
-			res.render('pages' + pageNameOfSensor,{
-				//send the data with those names as an array
-        		tagTemp: tagTemp,
-				tagRes: tagRes,
-				tagAdc: tagAdc,
-				tagMux: tagMux,
-				tagId: tagId
- 			});
+			connection.query('SELECT * FROM ' + tableNameOfSensor + ';', function (error, rowsNameOfSensor, fields) 
+			{ 
+				// gets data from database and assing them related array
+				for(var i=0;i<rowsNameOfSensor.length;i++){
+     				tagTemp.push(rowsNameOfSensor[i].temp);
+					tagRes.push(rowsNameOfSensor[i].res);
+					tagAdc.push(rowsNameOfSensor[i].adc);
+					tagMux.push(rowsNameOfSensor[i].mux);
+					tagId.push(rowsNameOfSensor[i].id);
+					tagTim.push(rowsNameOfSensor[i].time);
+    			}
+
+				// use res.render to load up an ejs view file
+				res.render('pages' + pageNameOfSensor,{
+					//send the data with those names as an array
+        			tagTemp: tagTemp,
+					tagRes: tagRes,
+					tagAdc: tagAdc,
+					tagMux: tagMux,
+					tagId: tagId
+ 				});
+
+				tagTemp =[]; 
+				tagRes = [];
+				tagAdc=[];
+				tagMux=[];
+				tagId=[];
+				tagTim=[];
+
+			});
+			
 		});
 	
-		// gets data from database and assing them related array
-		for(var i=0;i<rowsNameOfSensor.length;i++){
-     		tagTemp.push(rowsNameOfSensor[i].temp);
-			tagRes.push(rowsNameOfSensor[i].res);
-			tagAdc.push(rowsNameOfSensor[i].adc);
-			tagMux.push(rowsNameOfSensor[i].mux);
-			tagId.push(rowsNameOfSensor[i].id);
-			tagTim.push(rowsNameOfSensor[i].time);
-    	}
-	});
 }
 
 
