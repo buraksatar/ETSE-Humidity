@@ -40,3 +40,23 @@ SELECT TIME(time) from sensor3;
 select * from sensor1;
 select * from sensor2;
 select * from sensor3;
+
+
+1- We should change to dataype from TEXT to VARCHAR(255)
+
+$ alter table sensor1 modify column temp varchar(255);
+$ alter table sensor1 modify column res varchar(255);
+$ alter table sensor1 modify column adc varchar(255);
+$ alter table sensor1 modify column mux varchar(255);
+
+2- Later we should add another column
+
+$ ALTER TABLE sensor1 ADD unixTIME INT
+
+
+3- Then we should add a trigger that add unix time with every change 
+    so that it will be added automatically
+    
+$ create trigger deneme before insert on sensor1 for each row set new.unixTIME = unix_timestamp(now());
+
+- to add Unix 
