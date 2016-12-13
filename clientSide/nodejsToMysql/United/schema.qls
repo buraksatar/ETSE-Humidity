@@ -1,3 +1,4 @@
+//to create a table
 CREATE TABLE sensor1 (
   id     INT PRIMARY KEY AUTO_INCREMENT,
   temp   TEXT         NOT NULL,
@@ -7,7 +8,7 @@ CREATE TABLE sensor1 (
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
+//to create a table
 CREATE TABLE sensor2 (
   id     INT PRIMARY KEY AUTO_INCREMENT,
   temp   TEXT         NOT NULL,
@@ -17,7 +18,7 @@ CREATE TABLE sensor2 (
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
+//to create a table
 CREATE TABLE sensor3 (
   id     INT PRIMARY KEY AUTO_INCREMENT,
   temp   TEXT         NOT NULL,
@@ -27,19 +28,16 @@ CREATE TABLE sensor3 (
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+// just select the date
 SELECT DATE(time) from sensor1;
 SELECT DATE(time) from sensor2;
 SELECT DATE(time) from sensor3;
 
-
+// just select the time
 SELECT TIME(time) from sensor1;
 SELECT TIME(time) from sensor2;
 SELECT TIME(time) from sensor3;
 
-
-select * from sensor1;
-select * from sensor2;
-select * from sensor3;
 
 
 1- If we want to change the dataype from TEXT to VARCHAR(255)
