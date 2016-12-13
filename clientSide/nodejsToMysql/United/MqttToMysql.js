@@ -8,10 +8,10 @@ client.on('connect', function () {
  
 
 var connection = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: 'HADIBAKALIM',
-  database: 'datas'
+  host: 'localhost',         // host of database
+  user: 'root',             // user of database
+  password: 'HADIBAKALIM', // password of database
+  database: 'datas'       // name of database
 });
 connection.connect();
 
