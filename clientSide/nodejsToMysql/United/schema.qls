@@ -39,6 +39,15 @@ SELECT TIME(time) from sensor2;
 SELECT TIME(time) from sensor3;
 
 
+CREATE TABLE sensor1 (
+  id     INT PRIMARY KEY AUTO_INCREMENT,
+  temp   VARCHAR(255)         NOT NULL,
+  res   VARCHAR(255)         NOT NULL,
+  adc   VARCHAR(255)         NOT NULL,
+  mux   VARCHAR(255)         NOT NULL,
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 1- If we want to change the dataype from TEXT to VARCHAR(255)
 
