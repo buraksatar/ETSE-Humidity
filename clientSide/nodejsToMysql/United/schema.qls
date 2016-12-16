@@ -48,6 +48,16 @@ CREATE TABLE sensor1 (
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE sensor3 (
+  id     INT PRIMARY KEY AUTO_INCREMENT,
+  temp   VARCHAR(255)         NOT NULL,
+  res   VARCHAR(255)         NOT NULL,
+  adc   VARCHAR(255)         NOT NULL,
+  mux   VARCHAR(255)         NOT NULL,
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  unixTime INT
+);
+
 
 1- If we want to change the dataype from TEXT to VARCHAR(255)
 
