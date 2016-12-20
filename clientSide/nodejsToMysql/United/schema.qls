@@ -80,7 +80,14 @@ create trigger <trigger name> before insert on <tablename> for each row set new.
 
 CREATE TABLE chipID ( 
   id INT PRIMARY KEY AUTO_INCREMENT, 
-  number VARCHAR(255) NOT NULL,  
+  number VARCHAR(255) NOT NULL,
+  queue VARCHAR(255) NOT NULL,
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   unixTime INT
 );
+
+4-a
+create trigger chipIDtrig before insert on chipID for each row set new.unixTIME = unix_timestamp(now());
+INSERT INTO chipID (number,queue) VALUES ('8794332','s1');
+INSERT INTO chipID (number,queue) VALUES ('1496449','s2'); 
+INSERT INTO chipID (number,queue) VALUES ('1505613','s3');
