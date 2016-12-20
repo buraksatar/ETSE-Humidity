@@ -74,3 +74,13 @@ ALTER TABLE sensor1 ADD unixTIME INT
    (to make this process automatically we use trigger)
     
 create trigger <trigger name> before insert on <tablename> for each row set new.unixTIME = unix_timestamp(now());
+
+
+4- for sensor table
+
+CREATE TABLE chipID ( 
+  id INT PRIMARY KEY AUTO_INCREMENT, 
+  number VARCHAR(255) NOT NULL,  
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  unixTime INT
+);
