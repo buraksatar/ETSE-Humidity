@@ -91,3 +91,9 @@ create trigger chipIDtrig before insert on chipID for each row set new.unixTIME 
 INSERT INTO chipID (number,queue) VALUES ('8794332','s1');
 INSERT INTO chipID (number,queue) VALUES ('1496449','s2'); 
 INSERT INTO chipID (number,queue) VALUES ('1505613','s3');
+
+
+
+Not: to delete exact row
+DELETE FROM table_name
+WHERE some_column=some_value;
