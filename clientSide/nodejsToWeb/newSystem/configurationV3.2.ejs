@@ -1,0 +1,110 @@
+<!-- views/pages/configuration.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+</head>
+
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container", onload= >
+    
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+	You have <div id="numberOfSensor"></div>sensor in your network
+	
+	<br><br>
+    Latest update time in UNIX time mode:
+	<p id="latestUpdateTimeUnix"></p>
+
+    <br>
+	ChipID numbers of all  :
+	<p id="allCHipIDNumbers"></p>
+
+
+
+    <form action="configuration" method="get">
+                    <input type="text" name="number"/>
+                    <input type="text" name="queue"/>
+                    <input type="submit" value='Add a New Client to The Server' />
+    </form>
+
+<script>
+
+
+
+
+    var tagDatas = {
+	    chipIDnumber : [],
+        chipIDqueue : [],
+        chipIDunixTime : [],
+        chipIDid : []
+    };
+
+    
+    <%for(var i=0;i < tagId.length; i++){ %> 
+        tagDatas.chipIDid.push(<%= tagId[i] %>);
+        tagDatas.chipIDunixTime.push(<%= tagUnixTime[i] %>);
+        tagDatas.chipIDnumber.push(<%= tagNumber[i] %>);
+	<% } %>
+
+
+    document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length;
+    document.getElementById("latestUpdateTimeUnix").innerHTML = tagDatas.chipIDunixTime.slice(-1);
+    document.getElementById("allCHipIDNumbers").innerHTML = tagDatas.chipIDnumber;
+
+    /// ajax request
+    var interval2 = null;
+    interval2 = setInterval(ajaxCall,5000);
+
+    function ajaxCall() {
+	
+	    $.ajax({
+        	url: "/getBuff",
+        	type: "POST",
+        	dataType: "json",
+        	data: {},
+        	contentType: "application/json",
+        	cache: false,
+        	timeout: 5000,
+        	complete: function() {
+           		//called when complete
+            	console.log('process complete');
+        	},
+        	success: function(data) {
+                tagDatas.chipIDid = data.tagId.length;
+                document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid;
+
+                tagDatas.chipIDunixTime = data.tagUnixTime.slice(-1);
+                document.getElementById("latestUpdateTimeUnix").innerHTML = tagDatas.chipIDunixTime;
+
+                tagDatas.chipIDnumber = data.tagNumber;
+                document.getElementById("allCHipIDNumbers").innerHTML = tagDatas.chipIDnumber;
+
+  	    	},
+        	error: function() {
+               		console.log('process error');
+        	},
+	    });
+    }
+
+
+
+
+
+</script>
+
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
