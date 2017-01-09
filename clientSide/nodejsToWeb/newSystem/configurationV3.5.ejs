@@ -18,10 +18,14 @@
         <% include ../partials/header %>
     </header>
 
+    <form action="configuration" method="get">
+    <select id="dynamicSensorList" =></select>
+    </form>
+
 	You have <div id="numberOfSensor"></div>sensor in your network
 	
 	<br><br>
-    Latest update time in UNIX time mode:
+    Latest update time of which added the sensor network, in UNIX time mode:
 	<p id="latestUpdateTimeUnix"></p>
 
     <br>
@@ -40,9 +44,7 @@
         <input type="text" name="queueForDelete"/>
         <input type="submit" value='Delete a Client from The Server' />
     </form>
-    <form action="configuration" method="get">
-    <select id="dynamicSensorList" =></select>
-    </form>
+    
 
 <script>
     
@@ -141,22 +143,22 @@
                 if(select.options[select.selectedIndex].value == 'sensor1')
                 {
                     console.log('page1');
-                    //window.location.href = '/pageofSensor1'
+                    window.location.href = '/pageofSensor1'
                 }
                 if(select.options[select.selectedIndex].value == 'sensor2')
                 {
                     console.log('page2');
-                    //window.location.href = '/pageofSensor2'
+                    window.location.href = '/pageofSensor2'
                 }
                 if(select.options[select.selectedIndex].value == 'sensor3')
                 {
                     console.log('page3');
-                    //window.location.href = '/pageofSensor3'
+                    window.location.href = '/pageofSensor3'
                 }
                 if(select.options[select.selectedIndex].value == 'sensor4')
                 {
                     console.log('page4');
-                    //window.location.href = '/pageofSensor4'
+                    window.location.href = '/pageofSensor4'
                 }
                 //window.alert("\nValue: " + select.options[select.selectedIndex].value);
 
