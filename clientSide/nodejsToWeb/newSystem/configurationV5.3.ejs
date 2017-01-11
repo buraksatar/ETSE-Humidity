@@ -1,0 +1,267 @@
+<!-- views/pages/configuration.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+</head>
+
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container", onload= >
+    
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+    <form action="configuration" method="get">
+    <select id="dynamicSensorList" =></select>
+    </form>
+
+	You have <div id="numberOfSensor"></div>sensor in your network
+	
+	<br><br>
+    The date of latest added sensor, in UNIX time mode:
+	<p id="latestUpdateTimeUnix"></p>
+
+    <!-- <input form="addClient" type="submit" value='Add a New Client to The Server' />  -->
+    <!-- <input form="deleteClient" type="submit" value='Delete a Client from The Server' /> -->
+
+    <br>
+	ChipID numbers of all  :
+	<p id="allChipIDNumbers"></p>
+
+    <form id=addClient action="configuration" method="get">
+        Write the chip number to add a new client <input type="text" name="number"/>
+        <input type="text" name="description"/> 
+        <input type="submit" value='Add a New Client to The Server' />
+    </form>
+    <form id=deleteClient action="configuration" method="get">
+        Write the chip number to remove a client <input type="text" name="numberForDelete"/>
+       <input type="submit" value='Delete a Client from The Server' />
+    </form>
+
+    <div id="mainTable"></div>
+    
+<script>
+    
+    var general = {
+        previousTable : [],
+        latestTable : []
+    }
+
+    var bodyDatas = {
+        body : [],
+        tbl : [],
+        divTable : [],
+        tblBody : [],
+        row : []
+    }
+
+    var tagDatas = {
+        chipIDname : [],
+	    chipIDnumber : [],
+        chipIDqueue : [],
+        chipIDunixTime : [],
+        chipIDid : [],
+        sensorLength : 0,
+        sensorList : [],
+        chipIDdescription : []
+    };
+ 
+    <%for(var i=0;i < tagId.length; i++){ %>
+        tagDatas.chipIDname.push('<%= tagName[i] %>');
+        tagDatas.chipIDqueue.push('<%= tagQueue[i] %>');
+        tagDatas.chipIDid.push(<%= tagId[i] %>);
+        tagDatas.chipIDunixTime.push(<%= tagUnixTime[i] %>);
+        tagDatas.chipIDnumber.push(<%= tagNumber[i] %>);
+        tagDatas.chipIDdescription.push('<%= tagDescription[i] %>');
+	<% } %>
+
+    document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length;
+    document.getElementById("latestUpdateTimeUnix").innerHTML = tagDatas.chipIDunixTime.slice(-1);
+    
+    //document.getElementById("allChipIDNumbers").innerHTML = '';
+                
+    for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
+        document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDname[i] + ' <br />';
+    }
+
+    var select = document.getElementById("dynamicSensorList");
+    select.options[0] = new Option('Select a Sensor', 'sensor0');
+
+    //select = document.getElementById("dynamicSensorList");
+    for(index in tagDatas.chipIDnumber) {
+        select.options[select.options.length] = new Option(tagDatas.chipIDnumber[index], 'sensor'+ (parseInt(index)+1) );
+    }
+    tagDatas.sensorLength = select.options.length;
+
+    tagDatas.sensorLength--;
+    generate_table();
+
+    // GENERATE TABLE FUNCTION
+    function generate_table() {
+
+        // get the reference for the body
+  		bodyDatas.body = document.getElementsByTagName("body")[0];
+  		
+ 		// creates a <table> element and a <tbody> element
+  		bodyDatas.tbl     = document.createElement("table");
+		bodyDatas.divTable = document.createElement("div");
+        
+  		bodyDatas.tblBody = document.createElement("tbody");
+ 		bodyDatas.row = document.createElement("tr");
+		
+		// create the columns
+        function createColumn (name){
+            var TH = document.createElement("th");
+            var th = document.createTextNode(name);
+            TH.appendChild(th);
+		    bodyDatas.row.appendChild(TH)
+        }
+
+        createColumn('chipID');
+        createColumn('Type');
+        createColumn('Description');
+        createColumn('Temperature');
+        createColumn('Humidity');
+        createColumn('Select');
+	
+		bodyDatas.tblBody.appendChild(bodyDatas.row)
+
+        // creating all cells
+  		for(var i=0;i < tagDatas.chipIDid.length ; i++){
+    		// creates a table row
+    		bodyDatas.row = document.createElement("tr");
+   			
+			createElement(tagDatas.chipIDnumber[i]);
+			createElement(1);
+            createElement(tagDatas.chipIDdescription[i]);
+            createElement('?');
+            createElement('?');
+            checkBox();
+			
+    		// add the row to the end of the table body
+    		bodyDatas.tblBody.appendChild(bodyDatas.row);
+  		}
+
+        // function for creating Elements
+  		function createElement(xData){
+ 			var cell = document.createElement("td");
+      		var cellText = document.createTextNode(xData);
+      		cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+
+        function checkBox(){
+            var checkbox = document.createElement('input');
+      		checkbox.type = "checkbox";
+            checkbox.name = "Keslan";
+            checkbox.value = "Select";
+            checkbox.id = "idDeneme";
+      		bodyDatas.row.appendChild(checkbox);
+		}
+
+  		bodyDatas.tbl.appendChild(bodyDatas.tblBody);	
+		bodyDatas.divTable.appendChild(bodyDatas.tbl);
+        document.getElementById("mainTable").appendChild(bodyDatas.divTable);
+  		bodyDatas.body.appendChild(document.getElementById("mainTable"));
+
+  		bodyDatas.tbl.setAttribute("border", "2");
+
+    }
+
+    general.previousTable = tagDatas.chipIDnumber.length;
+    
+    function update_table(){
+        if ( general.previousTable != general.latestTable ){
+                //document.getElementById("mainTable").innerHTML.reload;
+                location.reload();
+        }
+   
+        general.previousTable = general.latestTable;
+        general.latestTable = tagDatas.chipIDnumber.length;
+
+    }
+
+    var interval2 = null;
+    interval2 = setInterval(ajaxCall,1000);
+
+    function ajaxCall() {
+	
+	    $.ajax({
+        	url: "/getBuff",
+        	type: "POST",
+        	dataType: "json",
+        	data: {},
+        	contentType: "application/json",
+        	cache: false,
+        	timeout: 3000,
+        	complete: function() {
+           		//called when complete
+            	console.log('process complete');
+        	},
+        	success: function(data) {
+                tagDatas.chipIDid = data.tagId.length;
+                document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid;
+
+                tagDatas.chipIDunixTime = data.tagUnixTime.slice(-1);
+                document.getElementById("latestUpdateTimeUnix").innerHTML = tagDatas.chipIDunixTime;
+
+                tagDatas.chipIDnumber = data.tagNumber;
+
+                tagDatas.chipIDname = data.tagName;
+
+                document.getElementById("allChipIDNumbers").innerHTML = '';
+                for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
+                    document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDname[i] + ' <br />';
+                }
+                
+                if ( tagDatas.chipIDnumber.length != tagDatas.sensorLength)
+                {
+                    select.options.length = 0;
+                    console.log('esit degil');
+                    select.options[0] = new Option('Select a Sensor', 'sensor0');
+                    
+                    for(index in tagDatas.chipIDnumber) {
+                        select.options[select.options.length] = new Option(tagDatas.chipIDnumber[index], 'sensor'+ (parseInt(index)+1) );
+                    }
+                    tagDatas.sensorLength = tagDatas.chipIDnumber.length;
+                }
+
+                tagDatas.sensorList = select.options[select.selectedIndex].value;
+                //console.log(select.options[select.selectedIndex].value);
+                
+                //console.log( deneme.slice(0,6) );
+
+                for ( i=0;i<tagDatas.chipIDnumber.length;i++ ){
+                    if(select.options[select.selectedIndex].value == 'sensor' + (i+1) )
+                    {
+                        console.log( 'page' + (i+1) );
+                        window.location.href = '/pageofSensor' + (i+1)
+                    }
+                }
+                
+                general.latestTable = tagDatas.chipIDnumber.length;
+
+                update_table();
+
+  	    	},
+        	error: function() {
+               		console.log('process error');
+        	},
+	    });
+    }
+
+</script>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
