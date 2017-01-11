@@ -83,7 +83,8 @@ CREATE TABLE chipID (
   number VARCHAR(255) NOT NULL,
   queue VARCHAR(255) NOT NULL,
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  unixTime INT
+  unixTime INT,
+  description VARCHAR(255) NOT NULL
 );
 
 4-a
