@@ -100,12 +100,12 @@ DELETE FROM table_name
 WHERE some_column=some_value;
 
 5- for store variables
-CREATE TABLE variables ( 
+CREATE TABLE registeredClients ( 
   id INT PRIMARY KEY AUTO_INCREMENT, 
-  registered VARCHAR(255) NOT NULL,
-  subscribed VARCHAR(255) NOT NULL,
+  clientName VARCHAR(255) NOT NULL,
+  description VARCHAR(255) NOT NULL,
   time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   unixTime INT
 );
-create trigger variabletrig before insert on variables for each row set new.unixTIME = unix_timestamp(now());
+create trigger registeredClientstrig before insert on registeredClients for each row set new.unixTIME = unix_timestamp(now());
 
