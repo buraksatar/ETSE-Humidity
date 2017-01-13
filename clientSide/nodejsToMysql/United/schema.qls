@@ -98,3 +98,14 @@ INSERT INTO chipID (number,queue) VALUES ('1505613','s3');
 Not: to delete exact row
 DELETE FROM table_name
 WHERE some_column=some_value;
+
+5- for store variables
+CREATE TABLE variables ( 
+  id INT PRIMARY KEY AUTO_INCREMENT, 
+  registered VARCHAR(255) NOT NULL,
+  subscribed VARCHAR(255) NOT NULL,
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  unixTime INT
+);
+create trigger variabletrig before insert on variables for each row set new.unixTIME = unix_timestamp(now());
+
