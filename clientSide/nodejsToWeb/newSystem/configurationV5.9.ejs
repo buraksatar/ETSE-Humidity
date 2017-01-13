@@ -87,8 +87,7 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                 );
 
                 // STORE THE REGISTERED AND SUBSCRIBED CLIENTS AT VARIABLE TABLE
-                connection.query('INSERT INTO variables SET ?', {registered: dataFromForm.number + sensorQueue, 
-                                            subscribed : dataFromForm.number + sensorQueue}  , 
+                connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number + sensorQueue}  , 
                     function (err, result) {
                         // error handling
                         if (err) {
@@ -181,6 +180,21 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
                             }
                         }
                     );
+                    //console.log(dataFromForm.number + sensorQueue);
+                    // DELETE FROM registeredClients TABLE
+                    connection.query('DELETE FROM registeredClients WHERE clientName = "'+ dataFromForm.number + rows[checkIndex].queue +'"' ,
+                        function (err, result) {
+                            if(err) {
+                                console.log(err);
+                            } 
+                            else {
+                                console.log("ALSO UNSUBSCRIBED");
+                            }
+                        }
+                    );
+
+                    
+
                 }
                 else{
                         console.log('Wrong client ID');
@@ -245,17 +259,10 @@ var unsubsribeClientFunction = function unsubsribeClientFunction()
                         }
                     );
                     //checkIndex++;
-                    console.log(dataFromForm.number + sensorQueue );
-                    connection.query('DELETE FROM variables WHERE subscribed = "'+ dataFromForm.number + sensorQueue +'"' ,
-                        function (err, result) {
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                console.log("Now UNSUBSCRIBED");
-                            }
-                        }
-                    );
+                    // COUNT THE REGISTERED
+                    //getDatafromRegisteredClientsTable();
+                    //console.log('registered data '+countClients.registered);
+
                     
                 }
                 else{
@@ -305,8 +312,8 @@ var dataFromForm = {
 };
 
 var countClients = {
-	subscribe : [],
-    justRegistered : []
+	registered : [],
+    ID : []
 };
 
 
@@ -355,6 +362,19 @@ function getDatafromchipIDtable(){
 }
 
 
+function getDatafromRegisteredClientsTable(){
+    
+    connection.query('SELECT * FROM registeredClients;', function (error, rows) 
+    {
+        countClients.registered = [];
+
+        for(var i=0;i<rows.length;i++){
+            countClients.registered.push(rows[i].clientName);
+    	}
+    });
+}
+
+
 app.get('/configuration', function(req, res) {
 
     res.render('pages' + '/configuration',{
@@ -364,7 +384,8 @@ app.get('/configuration', function(req, res) {
 	    tagQueue : tagDatas.chipIDqueue,
         tagUnixTime : tagDatas.chipIDunixTime,
         tagId : tagDatas.chipIDid,
-        tagDescription : tagDatas.chipIDdescription
+        tagDescription : tagDatas.chipIDdescription,
+        tagRegistered : countClients.registered
  	});
 });
 
@@ -391,7 +412,8 @@ app.post('/configuration', function(req, res) {
 	    tagQueue : tagDatas.chipIDqueue,
         tagUnixTime : tagDatas.chipIDunixTime,
         tagId : tagDatas.chipIDid,
-        tagDescription : tagDatas.chipIDdescription
+        tagDescription : tagDatas.chipIDdescription,
+        tagRegistered : countClients.registered
  	});
 });
 
@@ -449,6 +471,7 @@ app.post('/getBuff', function(req, res) {
     // gets data from database and assing them related array               
     // use res.render to load up an ejs view file
     getDatafromchipIDtable();
+    getDatafromRegisteredClientsTable();
 
     res.send({
         tagName : tagDatas.chipIDname,
@@ -456,7 +479,8 @@ app.post('/getBuff', function(req, res) {
 	    tagQueue : tagDatas.chipIDqueue,
         tagUnixTime : tagDatas.chipIDunixTime,
         tagId : tagDatas.chipIDid,
-        tagDescription : tagDatas.chipIDdescription
+        tagDescription : tagDatas.chipIDdescription,
+        tagRegistered : countClients.registered
 	});
 });
 
