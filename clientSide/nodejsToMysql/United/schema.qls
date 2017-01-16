@@ -109,3 +109,14 @@ CREATE TABLE registeredClients (
 );
 create trigger registeredClientstrig before insert on registeredClients for each row set new.unixTIME = unix_timestamp(now());
 
+6- new chipID
+
+CREATE TABLE chipID ( 
+  id INT PRIMARY KEY AUTO_INCREMENT, 
+  clientName VARCHAR(255) NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  unixTime INT
+);
+create trigger chipIDtrig before insert on chipID for each row set new.unixTIME = unix_timestamp(now());
+
