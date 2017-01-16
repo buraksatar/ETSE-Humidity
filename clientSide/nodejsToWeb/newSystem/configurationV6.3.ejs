@@ -21,7 +21,7 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
             // error handling
             if (error) throw error;
 
-            console.log(dataFromForm.description);
+            //console.log(dat |aFromForm.description);
 
             // local value for comparison
             var checkValue = 0;
@@ -47,7 +47,7 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                         var sensorQueueNumber = parseInt(nthVar[0].slice(-2)) + 1 ;
                     }
                       
-                    console.log(sensorQueueNumber);
+                    //console.log(sensorQueueNumber);
                     var sensorQueue = 's'+ sensorQueueNumber;
                 }
                 else {
@@ -55,7 +55,8 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                     var sensorQueue = 's1';
                 }
                 // insert the client value into chipID table
-                connection.query('INSERT INTO chipID SET ?', {number: dataFromForm.number, queue: sensorQueue}  , 
+                connection.query('INSERT INTO chipID SET ?', {number: dataFromForm.number, 
+                                            queue: sensorQueue, description: dataFromForm.description}  , 
                     function (err, result) {
                         // error handling
                         if (err) {
@@ -84,6 +85,22 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                         }
                     }
                 );
+
+                // STORE THE REGISTERED AND SUBSCRIBED CLIENTS AT VARIABLE TABLE
+                connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number + sensorQueue
+                                                , description: dataFromForm.description}  , 
+                    function (err, result) {
+                        // error handling
+                        if (err) {
+                            console.error(err);
+      	                }
+                        else{
+                            console.error(result);
+                        }
+                    }
+                );
+
+
             }
             else {
                 console.log('This client ID is already registered')
@@ -116,11 +133,13 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
                 // if the number we want to delete is in database
                 // check value cant be zero
 	            for(var i=0;i<rows.length;i++){
-                    if ( dataFromForm.number == tagDatas.chipIDnumber[i] ){
+                    if ( dataFromForm.number == registeredClients.subscriptionName[i] ){
+                        console.log(dataFromForm.number);
                         checkValue++;
                         checkIndex = i;
                     }
                 }
+                console.log(dataFromForm.number);
                 // if checkValue is not zero, that means the number registered in database
                 if (checkValue != 0){
                     
@@ -144,6 +163,7 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
                                 console.log(err);
                             } 
                             else {
+                                //console.log(result);
                                 console.log("Deleted succesfully from chipID table");
                             }
                         }
@@ -151,17 +171,33 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
                     //checkIndex++;
                     //console.log(dataFromForm.number + rows[checkIndex].queue);
                     // delete related table from the database 
-                    connection.query('DROP TABLE '+ dataFromForm.number + rows[checkIndex].queue,
+                    connection.query('DROP TABLE '+ dataFromForm.number ,
                         function(err, result){
                         // Case there is an error during the creation
                             if(err) {
                                 console.log(err);
                             } 
                             else {
+                                //console.log(result);
                                 console.log("Client's table deleted succesfully");
                             }
                         }
                     );
+                    //console.log(dataFromForm.number + sensorQueue);
+                    // DELETE FROM registeredClients TABLE
+                    connection.query('DELETE FROM registeredClients WHERE clientName = "'+ dataFromForm.number +'"' ,
+                        function (err, result) {
+                            if(err) {
+                                console.log(err);
+                            } 
+                            else {
+                                console.log("ALSO UNSUBSCRIBED");
+                            }
+                        }
+                    );
+
+                    
+
                 }
                 else{
                         console.log('Wrong client ID');
@@ -176,6 +212,78 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
 }
 // when deleteClientFromDatabase event emitted, deleteClientFromDatabaseFunction starts
 eventEmitter.on('deleteClientFromDatabase', deleteClientFromDatabaseFunction);
+
+
+var unsubsribeClientFunction = function unsubsribeClientFunction()
+{
+    // if form is not blank
+    if(dataFromForm.unsubscribe != ''){
+         connection.query('SELECT * FROM chipID;', 
+            function (error, rows) 
+            {
+                // error handling
+                if (error) throw error;
+
+                var checkValue = 0;
+                var checkIndex = 0;
+                // if the number we want to delete is in database
+                // check value cant be zero
+	            for(var i=0;i<rows.length;i++){
+                    if ( dataFromForm.unsubscribe == registeredClients.subscriptionName[i] ){
+                        checkValue++;
+                        checkIndex = i;
+                    }
+                }
+                // if checkValue is not zero, that means the number registered in database
+                if (checkValue != 0){
+                    
+                    getDatafromchipIDtable();
+                    getDatafromRegisteredClientsTable();
+                    
+
+                    if (tagDatas.chipIDqueue != ''){
+                        var nthVar = tagDatas.chipIDqueue.slice(-1); 
+                        var sensorQueueNumber = parseInt(nthVar[0].slice(-1)) ;
+                        var sensorQueue = 's'+ sensorQueueNumber;
+                    }
+                    else{
+                        return true;
+                    }
+                    
+                    // if the client isnt registred yet,
+                    // save the new client to the chipID table in mysqldatabase 
+                    // delete from chipId table
+                    connection.query('DELETE FROM chipID WHERE number = "'+ dataFromForm.unsubscribe +'"' ,
+                        function (err, result) {
+                            if(err) {
+                                console.log(err);
+                            } 
+                            else {
+                                console.log("Deleted succesfully from chipID table");
+                            }
+                        }
+                    );
+                    //checkIndex++;
+                    // COUNT THE REGISTERED
+                    //getDatafromRegisteredClientsTable();
+
+                    
+                }
+                else{
+                        console.log('Wrong client ID');
+                }
+            }
+        );
+    }
+    
+    // subscribe to all clients from starting over
+    subscribeAll();
+       
+}
+// when unsubsribeClient event emitted, unsubsribeClientFunction starts
+eventEmitter.on('unsubsribeClient', unsubsribeClientFunction);
+
+
 
 
 //database settingsd
@@ -203,7 +311,14 @@ var sensorAll = [];
 var dataFromForm = {
 	number : [],
     queue : [],
-    description : []
+    description : [],
+    unsubscribe : []
+};
+
+var registeredClients = {
+	subscriptionName : [],
+    description : [],
+    ID : []
 };
 
 
@@ -252,18 +367,51 @@ function getDatafromchipIDtable(){
 }
 
 
+function getDatafromRegisteredClientsTable(){
+    
+    connection.query('SELECT * FROM registeredClients;', function (error, rows) 
+    {
+        registeredClients.subscriptionName = [];
+        registeredClients.description = [];
+
+        for(var i=0;i<rows.length;i++){
+            registeredClients.subscriptionName.push(rows[i].clientName);
+            registeredClients.description.push(rows[i].description);
+    	}
+    });
+}
+
+
 app.get('/configuration', function(req, res) {
 
-    if ( req.param('number') ){
-        dataFromForm.number = req.param('number');
-        dataFromForm.description = req.param('description');
+    res.render('pages' + '/configuration',{
+	//send the data with those names as an array
+        tagName : tagDatas.chipIDname,
+        tagNumber : tagDatas.chipIDnumber,
+	    tagQueue : tagDatas.chipIDqueue,
+        tagUnixTime : tagDatas.chipIDunixTime,
+        tagId : tagDatas.chipIDid,
+        tagDescription : tagDatas.chipIDdescription,
+        tagRegistered : registeredClients.subscriptionName,
+        descriptionOfRegistered : registeredClients.description
+ 	});
+});
+
+app.post('/configuration', function(req, res) {
+
+    if ( req.body.number ){
+        dataFromForm.number = req.body.number;
+        dataFromForm.description = req.body.description;
         eventEmitter.emit('addClientCreateDatabase');
     }
-    else if ( req.param('numberForDelete') ){
-        dataFromForm.number = req.param('numberForDelete');
+    if ( req.body.numberForDelete ){
+        dataFromForm.number = req.body.numberForDelete;
         eventEmitter.emit('deleteClientFromDatabase');
     }
-    //console.log(tagDatas.chipIDname[0].toString());
+    if ( req.body.numberForUnsubscribe ){
+        dataFromForm.unsubscribe = req.body.numberForUnsubscribe;
+        eventEmitter.emit('unsubsribeClient');
+    }
     // use res.render to load up an ejs view file
     res.render('pages' + '/configuration',{
 	//send the data with those names as an array
@@ -272,11 +420,12 @@ app.get('/configuration', function(req, res) {
 	    tagQueue : tagDatas.chipIDqueue,
         tagUnixTime : tagDatas.chipIDunixTime,
         tagId : tagDatas.chipIDid,
-        tagDescription : tagDatas.chipIDdescription
+        tagDescription : tagDatas.chipIDdescription,
+        tagRegistered : registeredClients.subscriptionName,
+        descriptionOfRegistered : registeredClients.description
  	});
-
-
 });
+
 
 subscribeAll();
 
@@ -331,6 +480,7 @@ app.post('/getBuff', function(req, res) {
     // gets data from database and assing them related array               
     // use res.render to load up an ejs view file
     getDatafromchipIDtable();
+    getDatafromRegisteredClientsTable();
 
     res.send({
         tagName : tagDatas.chipIDname,
@@ -338,7 +488,9 @@ app.post('/getBuff', function(req, res) {
 	    tagQueue : tagDatas.chipIDqueue,
         tagUnixTime : tagDatas.chipIDunixTime,
         tagId : tagDatas.chipIDid,
-        tagDescription : tagDatas.chipIDdescription
+        tagDescription : tagDatas.chipIDdescription,
+        tagRegistered : registeredClients.subscriptionName,
+        descriptionOfRegistered : registeredClients.description
 	});
 });
 
@@ -350,7 +502,7 @@ function mqtt2sql(chipIDofSensor) {
     //console.log(chipIDofSensor);
     client.on('message', function (topic, message) {
         // message is Buffer
-        console.log(chipIDofSensor);
+        //console.log(chipIDofSensor);
         // if topic equals to one of topic that client(server) subscribe
         if(topic == '/data/' + chipIDofSensor) {
     
