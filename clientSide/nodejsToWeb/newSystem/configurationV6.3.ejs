@@ -1,540 +1,401 @@
-//load the things we need
-// libraries : mqtt, mysql, express, bodyparser, events
-var mqtt = require('mqtt');
-var client  = mqtt.connect('mqtt://192.168.24.130');
-var mysql = require('mysql');
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-var events = require('events');
-var eventEmitter = new events.EventEmitter();
+<!-- views/pages/configuration.ejs -->
 
-// this is an event function
-// that event add new client to database
-var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
-{
-    // Checking Process
-    // read the table if there is any, with the same name
-    connection.query('SELECT * FROM chipID;', 
-        function (error, rows) 
-        {
-            // error handling
-            if (error) throw error;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+</head>
 
-            //console.log(dat |aFromForm.description);
 
-            // local value for comparison
-            var checkValue = 0;
-            // if the number which we want to add into database is already installed
-            // checkValue can't be zero.
-	        for(var i=0;i<rows.length;i++){
-                if ( dataFromForm.number == tagDatas.chipIDnumber[i] ){
-                    checkValue++;
-                }
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container", onload= >
+    
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+    <form action="configuration" method="get">
+        <select id="dynamicSensorList" =></select>
+    </form>
+
+	You have <div id="numberOfSensor"></div> subscribed sensor in your network
+	
+	<br><br>
+
+    You have <div id="numberOfRegisteredSensor"></div> total sensor in your network
+    
+    <br><br>
+
+    <br>
+	ChipID numbers and subscription address of all active sensors  :
+	<p id="allChipIDNumbers"></p>
+
+    <form id=addClient action="configuration" method="post">
+        Write the chip number to add a new client <input type="text" name="number"/>
+        <input type="text" name="description"/> 
+        <input type="submit" value='Add a New Client to The Server' />
+    </form>
+
+    <div id="mainTable"></div>
+    
+    <form id=deleteClient action="configuration" method="post">
+       <input id='deleteChipID' type="text" name="numberForDelete" value='' />
+       <input type="submit" value='Delete The Client' />
+    </form>
+
+    <form id=unsubscribeClient action="configuration" method="post">
+       <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
+       <input type="submit" value='Unsubscribe The Client' />
+    </form>
+
+<script>
+    // TAKE THE DIFFERENTIATION of WHOLE SENSORS AND ACTIVE SENSORS 
+    Array.prototype.diff = function(a) {
+        return this.filter(
+            function(i) {
+                if (a.indexOf(i) < 0)
+                    tagDatas.registeredStatus.push('Unsubscribed');
+                else{
+                    tagDatas.registeredStatus.push('Subscribed');
+                    tagDatas.registeredClientNumber++;
+                }                   
             }
-            // if zero, the number hasnt installed into database yet.
-            if (checkValue == 0){
-                // if the client isnt registred yet,
-                // save the new client to the chipID table in mysqldatabase
-                if (tagDatas.chipIDqueue != ''){
-                // if the value has a value
-                    var nthVar = tagDatas.chipIDqueue.slice(-1);
-                    if(parseInt(nthVar[0].slice(-2)) != '')
-                    {
-                        var sensorQueueNumber = parseInt(nthVar[0].slice(-1)) + 1 ;
-                    }
-                    else {
-                        var sensorQueueNumber = parseInt(nthVar[0].slice(-2)) + 1 ;
-                    }
-                      
-                    //console.log(sensorQueueNumber);
-                    var sensorQueue = 's'+ sensorQueueNumber;
-                }
-                else {
-                // else the value has not a value, default value should be s1 which stands for sensor1
-                    var sensorQueue = 's1';
-                }
-                // insert the client value into chipID table
-                connection.query('INSERT INTO chipID SET ?', {number: dataFromForm.number, 
-                                            queue: sensorQueue, description: dataFromForm.description}  , 
-                    function (err, result) {
-                        // error handling
-                        if (err) {
-                            console.error(err);
-      	                }
-                        else{
-                            console.error(result);
-                        }
-                    }
-                );
-                
-                // create a new table according to new client, 
-                // so that the data comes to new client can be saved in related table
-                connection.query('CREATE TABLE '+ dataFromForm.number + sensorQueue +
-                     ' ( id INT PRIMARY KEY AUTO_INCREMENT, temp VARCHAR(255) NOT NULL,'+
-                     ' res VARCHAR(255) NOT NULL, adc VARCHAR(255) NOT NULL, mux VARCHAR(255) NOT NULL,'+
-                     ' time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, unixTime INT );',
-                    // error handling
-                    function(err, result){
-                        // Case there is an error during the creation
-                        if(err) {
-                            console.log(err);
-                        } 
-                        else {
-                            console.log("New client's table created succesfully");
-                        }
-                    }
-                );
+        );
+    };
+    
+    // GENERAL VARIABLES FOR GENERAL ASPECTS
+    var general = {
+        previousTable : [],
+        latestTable : [],
+        elem : [],
+        deneme : 0,
+        elemUnSubscribe : [],
+        sikForUnsubcribe : 0,
+        sayacForTable : 0,
+        sayacForStatus : 0,
+        intervalForMainAjaxCall : null
+    }
+    // GENERAL VARIABLES FOR TABLE CREATION
+    var bodyDatas = {
+        body : [],
+        tbl : [],
+        divTable : [],
+        tblBody : [],
+        row : [],
+        checked : []
+    }
+    // GENERAL VARIABLES FOR CHIPID and REGISTERED TABLES
+    var tagDatas = {
+        chipIDname : [],
+	    chipIDnumber : [],
+        chipIDqueue : [],
+        chipIDunixTime : [],
+        chipIDid : [],
+        sensorLength : 0,
+        chipIDdescription : [],
+        registered : [],
+        registeredStatus : [],
+        registeredDescription : [],
+        registeredClientNumber : 0
+    };
+ 
+    // GET ALL DATA FROM EXPRESSJS AND ASSING THEM TO THE TAGDATAS VARIABLES
+    <%for(var i=0;i < tagId.length; i++){ %>
+        tagDatas.chipIDname.push('<%= tagName[i] %>');
+        tagDatas.chipIDqueue.push('<%= tagQueue[i] %>');
+        tagDatas.chipIDid.push(<%= tagId[i] %>);
+        tagDatas.chipIDunixTime.push(<%= tagUnixTime[i] %>);
+        tagDatas.chipIDnumber.push(<%= tagNumber[i] %>);
+        tagDatas.chipIDdescription.push('<%= tagDescription[i] %>');
+	<% } %>
 
-                // STORE THE REGISTERED AND SUBSCRIBED CLIENTS AT VARIABLE TABLE
-                connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number + sensorQueue
-                                                , description: dataFromForm.description}  , 
-                    function (err, result) {
-                        // error handling
-                        if (err) {
-                            console.error(err);
-      	                }
-                        else{
-                            console.error(result);
-                        }
-                    }
-                );
+    <%for(var i=0;i < tagRegistered.length; i++){ %>
+        tagDatas.registered.push('<%= tagRegistered[i] %>');
+        tagDatas.registeredDescription.push('<%= descriptionOfRegistered[i] %>');
+	<% } %>
+
+    // SHOW HOW MANY CLIENTS ACTIVE
+    document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length;
+    
+    for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
+        document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDname[i] + ' <br />';
+    }
+
+    // SHOW HOW MANY CLIENTS REGISTERED
+    document.getElementById("numberOfRegisteredSensor").innerHTML = tagDatas.registered.length;
+
+    // DYNAMIC SENSOR LIST, DEFINITION         
+    var select = document.getElementById("dynamicSensorList");
+    select.options[0] = new Option('Select a Sensor', 'sensor0');
+    console.log(select.options.length);
+    // GET DATAS FROM REGISTERED TABLE AND CREATE DYNAMIC LIST
+    for(var i=0; i<= tagDatas.registered.length -1 ; i++) {
+        select.options[select.options.length] = new Option(tagDatas.registered[i], 'sensor'+ (parseInt(i)+1) );
+    }
 
 
-            }
-            else {
-                console.log('This client ID is already registered')
-            }
+    tagDatas.sensorLength = select.options.length;
+    console.log('first number of tagDatas.sensorLength ' + select.options.length);
+
+
+    // FOR STATUS CELL ON THE DYNAMIC TABLE
+  	// IF REGISTERED TABLE AND CHIPID TABLE EQUAL THAT MEANS ALL STATUS HAS TO BE 'SUBSCRIBED'
+    if( tagDatas.registered.length == tagDatas.chipIDid.length ){
+        for(var i=0;i < tagDatas.registered.length ; i++){
+            tagDatas.registeredStatus.push('Subscribed');
         }
-    );
+    }
+    // IF IT IS NOT EQUAL, CALL THE DIFFERENTIATION FUNCTION
+    else {
+        tagDatas.registered.diff(tagDatas.chipIDname); 
+    }
 
+    // CALL THE GENERATE TABLE FUNCTION
+    generate_table();
+
+
+    // GENERATE TABLE FUNCTION
+    function generate_table() {
+
+        // GET THE REFERENCE FOR THE BODY
+  		bodyDatas.body = document.getElementsByTagName("body")[0];
+  		
+ 		// CREATES A <TABLE>, <DIV>, <TBODY>, <TR> ELEMENTS
+  		bodyDatas.tbl     = document.createElement("table");
+		bodyDatas.divTable = document.createElement("div");       
+  		bodyDatas.tblBody = document.createElement("tbody");
+ 		bodyDatas.row = document.createElement("tr");
+		
+		// CREATE THE COLUMNS FUNCTION
+        function createColumn (name){
+            var TH = document.createElement("th");
+            var th = document.createTextNode(name);
+            TH.appendChild(th);
+		    bodyDatas.row.appendChild(TH)
+        }
+
+        // CREATE COLUMNS
+        createColumn('chipID');
+        createColumn('Type');
+        createColumn('Description');
+        createColumn('Temperature');
+        createColumn('Humidity');
+        createColumn('Select');
+        createColumn('Status');
+	
+        // APPEND THE ROWS TO THE BODY
+		bodyDatas.tblBody.appendChild(bodyDatas.row)
+
+        // CREATE ALL CELLS
+  		for(var i=0;i < tagDatas.registered.length ; i++){
+    		// CREATE A TABLE ROW ELEMENT
+    		bodyDatas.row = document.createElement("tr");
+   			
+            // FILL THE ROWS WITH DATAS 
+			createElement(tagDatas.registered[i]);
+			createElement(1);
+            createElement(tagDatas.registeredDescription[i]);
+            createElement('?');
+            createElement('?');
+            checkBoxForDelete(i+1);
+            checkBoxForUnsubscribe(i+1);
+            createElement(tagDatas.registeredStatus[i]);
+			
+    		// ADD THE ROW TO THE END OF THE TABLE
+    		bodyDatas.tblBody.appendChild(bodyDatas.row);
+  		}
+
+        // FUNCTION TO CREATE ELEMENTS
+  		function createElement(xData){
+ 			var cell = document.createElement("td");
+      		var cellText = document.createTextNode(xData);
+      		cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+
+        // CREATE CHECKBOX FOR  DELETING
+        function checkBoxForDelete(n){
+            var checkbox = document.createElement('input');
+      		
+            checkbox.type = "checkbox";
+            checkbox.name = "Keslan"+ n;
+            checkbox.value = "Select"+n;
+            checkbox.id = "checkedDeneme"+n;
+            checkbox.form = "deleteClient";
+
+            // ASSING THEM TO THE VARIABLES
+            bodyDatas.checked.push(checkbox);
+      		bodyDatas.row.appendChild(checkbox);
+		}
+
+        // CREATE CHECKBOX FOR UNSUBSCRIBING
+        function checkBoxForUnsubscribe(n){
+            var checkbox = document.createElement('input');
+      		
+            checkbox.type = "checkbox";
+            checkbox.name = "Suslan"+ n;
+            checkbox.value = "Select"+n;
+            checkbox.id = "checkedUnsubcribe"+n;
+            checkbox.form = "unsubscribeClient";
+
+            // ASSING THEM TO THE VARIABLES
+            bodyDatas.checked.push(checkbox);
+      		bodyDatas.row.appendChild(checkbox);
+		}
+
+        // APPENDING   
+  		bodyDatas.tbl.appendChild(bodyDatas.tblBody);	
+		bodyDatas.divTable.appendChild(bodyDatas.tbl);
+        document.getElementById("mainTable").appendChild(bodyDatas.divTable);
+  		bodyDatas.body.appendChild(document.getElementById("mainTable"));
+
+  		bodyDatas.tbl.setAttribute("border", "2");
+
+    }
+
+    ///// ?????
+    general.previousTable = tagDatas.chipIDnumber.length;
     
-    // subscribe to all clients from starting over
-    subscribeAll();
+    function update_table(){
+        //if ( general.previousTable != general.latestTable ){
+                //$("#mainTable").load('configuration'+" #mainTable>*","");
+                //document.getElementById("mainTable").innerHTML.reload;
+        //        location.reload();
+        //}
         
-}
-// when addClientCreateDatabase event emitted, addClientCreateDatabaseFunction starts
-eventEmitter.on('addClientCreateDatabase', addClientCreateDatabaseFunction);
+        console.log('at second ' + general.latestTable);
+        general.previousTable = general.latestTable;
+        console.log('at third ' + general.previousTable);
+        general.latestTable = tagDatas.chipIDnumber.length;
+        console.log('at last ' + tagDatas.chipIDnumber.length);
 
-// this is an event function
-// that event delete the client from database
-var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction()
-{
-    // if form is not blank
-    if(dataFromForm.number != ''){
-         connection.query('SELECT * FROM chipID;', 
-            function (error, rows) 
-            {
-                // error handling
-                if (error) throw error;
-
-                var checkValue = 0;
-                var checkIndex = 0;
-                // if the number we want to delete is in database
-                // check value cant be zero
-	            for(var i=0;i<rows.length;i++){
-                    if ( dataFromForm.number == registeredClients.subscriptionName[i] ){
-                        console.log(dataFromForm.number);
-                        checkValue++;
-                        checkIndex = i;
-                    }
-                }
-                console.log(dataFromForm.number);
-                // if checkValue is not zero, that means the number registered in database
-                if (checkValue != 0){
-                    
-                    getDatafromchipIDtable();
-
-                    if (tagDatas.chipIDqueue != ''){
-                        var nthVar = tagDatas.chipIDqueue.slice(-1); 
-                        var sensorQueueNumber = parseInt(nthVar[0].slice(-1)) ;
-                        var sensorQueue = 's'+ sensorQueueNumber;
-                    }
-                    else{
-                        return true;
-                    }
-                    
-                    // if the client isnt registred yet,
-                    // save the new client to the chipID table in mysqldatabase 
-                    // delete from chipId table
-                    connection.query('DELETE FROM chipID WHERE number = "'+ dataFromForm.number +'"' ,
-                        function (err, result) {
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                //console.log(result);
-                                console.log("Deleted succesfully from chipID table");
-                            }
-                        }
-                    );
-                    //checkIndex++;
-                    //console.log(dataFromForm.number + rows[checkIndex].queue);
-                    // delete related table from the database 
-                    connection.query('DROP TABLE '+ dataFromForm.number ,
-                        function(err, result){
-                        // Case there is an error during the creation
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                //console.log(result);
-                                console.log("Client's table deleted succesfully");
-                            }
-                        }
-                    );
-                    //console.log(dataFromForm.number + sensorQueue);
-                    // DELETE FROM registeredClients TABLE
-                    connection.query('DELETE FROM registeredClients WHERE clientName = "'+ dataFromForm.number +'"' ,
-                        function (err, result) {
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                console.log("ALSO UNSUBSCRIBED");
-                            }
-                        }
-                    );
-
-                    
-
-                }
-                else{
-                        console.log('Wrong client ID');
-                }
-            }
-        );
     }
-    
-    // subscribe to all clients from starting over
-    subscribeAll();
-       
-}
-// when deleteClientFromDatabase event emitted, deleteClientFromDatabaseFunction starts
-eventEmitter.on('deleteClientFromDatabase', deleteClientFromDatabaseFunction);
+    ///// ?????
+
+    console.log(tagDatas.registeredClientNumber);    
+
+    // Call the main ajax funtion
+    general.intervalForMainAjaxCall = setInterval(ajaxCall,1000);
+
+    function ajaxCall() {
+	
+	    $.ajax({
+        	url: "/getBuff",
+        	type: "POST",
+        	dataType: "json",
+        	data: {},
+        	contentType: "application/json",
+        	cache: false,
+        	timeout: 3000,
+        	complete: function() {
+           		//called when complete
+            	console.log('process complete');
+        	},
+        	success: function(data) {
+                // get lenght of the chipID table 
+                tagDatas.chipIDid = data.tagId.length;
+                document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid;
+
+                // get lenght of the registeredClients table 
+                tagDatas.registered = data.tagRegistered;
+                document.getElementById("numberOfRegisteredSensor").innerHTML = tagDatas.registered.length;
+
+                // chipID number of active sensors
+                tagDatas.chipIDnumber = data.tagNumber;
+                // chipID number+queue(subscripton address) of active sensors
+                tagDatas.chipIDname = data.tagName;
+
+                // get all things from chipID table
+                document.getElementById("allChipIDNumbers").innerHTML = '';
+                for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
+                    document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDname[i] + ' <br />';
+                }
+                
+                // FOR DYNAMIC SELECT 
+                if ( tagDatas.registered.length != tagDatas.sensorLength)
+                {
+                    select.options.length = 0;
+                    console.log('esit degil');
+                    select.options[0] = new Option('Select a Sensor', 'sensor0');
+                    
+                    for(var i=0; i<= tagDatas.registered.length -1 ; i++) {
+                        select.options[select.options.length] = new Option(tagDatas.registered[i], 'sensor'+ (parseInt(i)+1) );
+                    }
+                    tagDatas.sensorLength = tagDatas.registered.length;
+                    console.log('second number of tagDatas.sensorLength ' + tagDatas.sensorLength);
+
+                }
+
+                general.latestTable = tagDatas.registered.length;
+
+                update_table();
 
 
-var unsubsribeClientFunction = function unsubsribeClientFunction()
-{
-    // if form is not blank
-    if(dataFromForm.unsubscribe != ''){
-         connection.query('SELECT * FROM chipID;', 
-            function (error, rows) 
-            {
-                // error handling
-                if (error) throw error;
-
-                var checkValue = 0;
-                var checkIndex = 0;
-                // if the number we want to delete is in database
-                // check value cant be zero
-	            for(var i=0;i<rows.length;i++){
-                    if ( dataFromForm.unsubscribe == registeredClients.subscriptionName[i] ){
-                        checkValue++;
-                        checkIndex = i;
+                // Dynamic List , get from registered table
+                for ( i=0;i<tagDatas.registered.length;i++ ){
+                    if(select.options[select.selectedIndex].value == 'sensor' + (i+1) )
+                    {
+                        console.log( 'page' + (i+1) );
+                        window.location.href = '/pageofSensor' + (i+1)
                     }
                 }
-                // if checkValue is not zero, that means the number registered in database
-                if (checkValue != 0){
-                    
-                    getDatafromchipIDtable();
-                    getDatafromRegisteredClientsTable();
-                    
 
-                    if (tagDatas.chipIDqueue != ''){
-                        var nthVar = tagDatas.chipIDqueue.slice(-1); 
-                        var sensorQueueNumber = parseInt(nthVar[0].slice(-1)) ;
-                        var sensorQueue = 's'+ sensorQueueNumber;
+
+                
+                for ( var i=0;i<tagDatas.registered.length;i++ ){   
+                    var a = 0;
+                    a = i+1;
+                    //general.elem = a;
+                    /// FOR DELETE THE CLIENT
+                    general.elem.push( document.getElementById('checkedDeneme'+a) );
+                    console.log(general.elem[i]);
+                    general.elem[i].checked == false;
+
+                   if ( general.elem && general.elem[i].checked == true ){
+                        document.getElementById("deleteChipID").value = '';
+                        document.getElementById("deleteChipID").value = tagDatas.registered[i]; // Get text field
+                        general.deneme = i;
+                   }
+                   else if ( general.elem && general.elem[general.deneme].checked == false ){
+                            document.getElementById("deleteChipID").value = '';
+                            console.log('UNSELECT');
                     }
-                    else{
-                        return true;
+
+                       
+                    //FOR UNSUBSCRIBE THE CLIENT
+                    general.elemUnSubscribe.push( document.getElementById('checkedUnsubcribe'+a) );
+
+                    general.elemUnSubscribe[i].checked == false;
+
+                    //console.log(general.elemUnSubscribe[i].onchange);
+                    if ( general.elemUnSubscribe && general.elemUnSubscribe[i].checked == true ){
+                        document.getElementById("unsubscribeChipID").value = '';
+                        document.getElementById("unsubscribeChipID").value = tagDatas.registered[i]; // Get text field
+                        general.sikForUnsubcribe = i;
                     }
-                    
-                    // if the client isnt registred yet,
-                    // save the new client to the chipID table in mysqldatabase 
-                    // delete from chipId table
-                    connection.query('DELETE FROM chipID WHERE number = "'+ dataFromForm.unsubscribe +'"' ,
-                        function (err, result) {
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                console.log("Deleted succesfully from chipID table");
-                            }
-                        }
-                    );
-                    //checkIndex++;
-                    // COUNT THE REGISTERED
-                    //getDatafromRegisteredClientsTable();
+                    else if ( general.elemUnSubscribe && general.elemUnSubscribe[general.sikForUnsubcribe].checked == false ){
+                            document.getElementById("unsubscribeChipID").value = '';
+                            console.log('UNSELECT2');
+                    }
 
-                    
-                }
-                else{
-                        console.log('Wrong client ID');
-                }
-            }
-        );
+                } 
+                             
+  	    	},
+        	error: function() {
+               		console.log('process error');
+        	},
+	    });
     }
-    
-    // subscribe to all clients from starting over
-    subscribeAll();
-       
-}
-// when unsubsribeClient event emitted, unsubsribeClientFunction starts
-eventEmitter.on('unsubsribeClient', unsubsribeClientFunction);
 
+</script>
 
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
 
-
-//database settingsd
-var connection = mysql.createConnection({
-  	host: 'localhost',
-  	user: 'root',
-  	password: 'HADIBAKALIM',
-  	database: 'datas',
-  	multipleStatements: true
-});
-
-connection.connect();
-
-var tagDatas = {
-    chipIDname : [],
-	chipIDnumber : [],
-    chipIDqueue : [],
-    chipIDunixTime : [],
-    chipIDid : [],
-    chipIDdescription : []
-};
-
-var sensorAll = [];
-
-var dataFromForm = {
-	number : [],
-    queue : [],
-    description : [],
-    unsubscribe : []
-};
-
-var registeredClients = {
-	subscriptionName : [],
-    description : [],
-    ID : []
-};
-
-
-// set the view engine to ejs on ExpressJS
-app.set('view engine', 'ejs');
-
-// set the main page on ExpressJS
-app.get('/', function(req, res) {
-		// use res.render to load up an ejs view file
-    		res.render('pages/index');
-	});
-
-app.get("/burak", function(request, response) {
-  response.end("BURAK SATAR was here!");
-});
-
-// express ajax, reachable website from public
-app.use('/public', express.static('public'));
-
-
-app.use(bodyParser.urlencoded({ extended: true }))
-// parse application/json 
-app.use(bodyParser.json())
-
-
-function getDatafromchipIDtable(){
-    
-    connection.query('SELECT * FROM chipID;', function (error, rows) 
-    {
-        tagDatas.chipIDname = [];
-        tagDatas.chipIDnumber = [];
-        tagDatas.chipIDqueue = [];
-        tagDatas.chipIDunixTime = [];
-        tagDatas.chipIDid = [];
-        tagDatas.chipIDdescription = [];
-
-        for(var i=0;i<rows.length;i++){
-            tagDatas.chipIDname.push( rows[i].number + rows[i].queue );
-     	    tagDatas.chipIDnumber.push(rows[i].number);
-            tagDatas.chipIDqueue.push( rows[i].queue );
-            tagDatas.chipIDunixTime.push(rows[i].unixTime);
-            tagDatas.chipIDid.push(rows[i].id);
-            tagDatas.chipIDdescription.push(rows[i].description);
-    	}
-    });
-}
-
-
-function getDatafromRegisteredClientsTable(){
-    
-    connection.query('SELECT * FROM registeredClients;', function (error, rows) 
-    {
-        registeredClients.subscriptionName = [];
-        registeredClients.description = [];
-
-        for(var i=0;i<rows.length;i++){
-            registeredClients.subscriptionName.push(rows[i].clientName);
-            registeredClients.description.push(rows[i].description);
-    	}
-    });
-}
-
-
-app.get('/configuration', function(req, res) {
-
-    res.render('pages' + '/configuration',{
-	//send the data with those names as an array
-        tagName : tagDatas.chipIDname,
-        tagNumber : tagDatas.chipIDnumber,
-	    tagQueue : tagDatas.chipIDqueue,
-        tagUnixTime : tagDatas.chipIDunixTime,
-        tagId : tagDatas.chipIDid,
-        tagDescription : tagDatas.chipIDdescription,
-        tagRegistered : registeredClients.subscriptionName,
-        descriptionOfRegistered : registeredClients.description
- 	});
-});
-
-app.post('/configuration', function(req, res) {
-
-    if ( req.body.number ){
-        dataFromForm.number = req.body.number;
-        dataFromForm.description = req.body.description;
-        eventEmitter.emit('addClientCreateDatabase');
-    }
-    if ( req.body.numberForDelete ){
-        dataFromForm.number = req.body.numberForDelete;
-        eventEmitter.emit('deleteClientFromDatabase');
-    }
-    if ( req.body.numberForUnsubscribe ){
-        dataFromForm.unsubscribe = req.body.numberForUnsubscribe;
-        eventEmitter.emit('unsubsribeClient');
-    }
-    // use res.render to load up an ejs view file
-    res.render('pages' + '/configuration',{
-	//send the data with those names as an array
-        tagName : tagDatas.chipIDname,
-        tagNumber : tagDatas.chipIDnumber,
-	    tagQueue : tagDatas.chipIDqueue,
-        tagUnixTime : tagDatas.chipIDunixTime,
-        tagId : tagDatas.chipIDid,
-        tagDescription : tagDatas.chipIDdescription,
-        tagRegistered : registeredClients.subscriptionName,
-        descriptionOfRegistered : registeredClients.description
- 	});
-});
-
-
-subscribeAll();
-
-// main base for prototype
-var sensorObjectBase = function  (){ 
-    this.testValue = true;
-};
-
-// define name of the variables, call from main base
-var sensorObject = function( chipId ){
-    sensorObjectBase.call(this);
-	this.chipId = chipId;
-}
-
-// use prototype from sensorObjectBase, even if it is not defined
-sensorObject.prototype = Object.create(sensorObjectBase.prototype);
-// create the prototype
-sensorObject.prototype.constructor = sensorObject;
- // define the function of prototype
-sensorObject.prototype.calling = function(){
-	// call the main function with variables
-	mqtt2sql(this.chipId);
-}
-
-
-function subscribeAll(){
-    // define client
-    client.end();
-
-    client  = mqtt.connect('mqtt://192.168.24.130')
-
-    client.on('connect', function () {
-
-        getDatafromchipIDtable();
-        
-        connection.query('SELECT * FROM chipID;', function (error, rows) 
-        {
-            // gets data from database and assing them related array
-	        for(var i=0;i<rows.length;i++){
-                sensorAll[i] = new sensorObject( tagDatas.chipIDname[i] );
-                sensorAll[i].calling();
-                client.subscribe('/data/' + tagDatas.chipIDname[i]);
-            }
-        });
-    })
-}
-
-
-// send it every 5 seconds
-app.post('/getBuff', function(req, res) {
-
-    // gets data from database and assing them related array               
-    // use res.render to load up an ejs view file
-    getDatafromchipIDtable();
-    getDatafromRegisteredClientsTable();
-
-    res.send({
-        tagName : tagDatas.chipIDname,
-        tagNumber : tagDatas.chipIDnumber,
-	    tagQueue : tagDatas.chipIDqueue,
-        tagUnixTime : tagDatas.chipIDunixTime,
-        tagId : tagDatas.chipIDid,
-        tagDescription : tagDatas.chipIDdescription,
-        tagRegistered : registeredClients.subscriptionName,
-        descriptionOfRegistered : registeredClients.description
-	});
-});
-
-
-// if a data goes to mqtt broker and if server subscribe one those topic
-// gets the data and write them into sqldatabase
-function mqtt2sql(chipIDofSensor) {
-        //mqtt client is on
-    //console.log(chipIDofSensor);
-    client.on('message', function (topic, message) {
-        // message is Buffer
-        //console.log(chipIDofSensor);
-        // if topic equals to one of topic that client(server) subscribe
-        if(topic == '/data/' + chipIDofSensor) {
-    
-            var dynamicChipValue = chipIDofSensor.slice(-1);
-            //console.log(dynamicChipValue);
-
-            //get data as a string 
-            data = message.toString(); 
-      
-            //split it by comma
-            var newbuff = data.split(",");
-            //console.log(newbuff);
-            //assign the data to related post values   
-            var post  = {
-                temp: newbuff[0], 
-                res: newbuff[1], 
-                adc: newbuff[2], 
-                mux: newbuff[3]
-            };
-   
-            // put post values to table of sensor1 in MYSQL database
-            var query = connection.query('INSERT INTO '+ chipIDofSensor + ' SET ?', post , function (err, result) {
-            
-                if (err) {
-                    //console.error(err);
-        		    return;
-      		    }
-      		    //console.error(result);
-
-            });        
-        }              
-    })
-}
-app.listen(8080);
-console.log('the port: 8080, is active ');
+</body>
+</html>
