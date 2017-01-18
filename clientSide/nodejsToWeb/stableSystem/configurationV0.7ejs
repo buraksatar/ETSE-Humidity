@@ -56,7 +56,13 @@
     </form>
 
 
+  
+
+
 <script>
+
+
+
     // TAKE THE DIFFERENTIATION of WHOLE SENSORS AND ACTIVE SENSORS 
     Array.prototype.diff = function(a) {
         return this.filter(
@@ -215,11 +221,13 @@
 
             var link = document.createElement('a');
             link.textContent = tagDatas.registered[i];
-            link.href = 'http://your.domain.tld/some/path';
+            //link.href = '/pageofSensor'+(1);
+            link.href = "#"
+            link.id = 'sensorPage'+i;
             document.getElementById('deneme').appendChild(link);
 
-            //createLink(link);
-			createElement(tagDatas.registered[i]);
+            createLink(link);
+			//createElement(tagDatas.registered[i]);
 			createElement(1);
             createElement(tagDatas.registeredDescription[i]);
             getLatestTemp('?',i);
@@ -326,6 +334,39 @@
     }  
 
 
+    // check for links if clicked or not
+    $('a').click(function(){
+        alert(this.id);
+        post('/configuration/', {sikko: 'Johnny'});
+
+    });
+
+    // POST FUNCTION
+    function post(path, params, method) {
+    method = method || "post"; // Set method to post by default if not specified.
+
+    // The rest of this code assumes you are not using a library.
+    // It can be made less wordy if you use one.
+    var form = document.createElement("form");
+    form.setAttribute("method", method);
+    form.setAttribute("action", path);
+
+    for(var key in params) {
+        if(params.hasOwnProperty(key)) {
+            var hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", key);
+            hiddenField.setAttribute("value", params[key]);
+
+            form.appendChild(hiddenField);
+         }
+    }
+
+    document.body.appendChild(form);
+        form.submit();
+    }
+
+
 
     
     // Call the main ajax funtion
@@ -346,16 +387,14 @@
             	console.log('process complete');
         	},
         	success: function(data) {
+                //to reload the page with every change
+                if ( data.deneme == 1 ){
+                    location.reload();
+                }
+
                 var bok = data.sikerler;
-            
-                var link = document.createElement('a');
-                link.textContent = tagDatas.registered[0];
-                link.href = 'http://your.domain.tld/some/path';
-                //document.getElementById('deneme').appendChild(link);
-                //document.getElementById("deneme").innerHTML = link;
         
-                //console.log(tagDatas.registered[0]);
-                //document.getElementById("deneme").innerHTML = '<a href="http://your.domain.tld">tagDatas.registered[0]</a>';
+
 
                 //alert messages
                 // to show alert message when the user enter client id that already registered 
@@ -371,6 +410,16 @@
                 if( data.alertSuccessUnsubscribed == 1 ){
                     alert("Unsubscribed Successfully!");
                 }
+                if( data.alertWrongClientIDSyntax == 1 ){
+                    alert("Wrong ClientID Syntax! It can't has any letters");
+                }
+                if( data.alertWrongClientID7Digit == 1 ){
+                    alert("It has to be 7 digit!");
+                }
+                 if( data.routePage != 0 ){
+                    window.location.href = '/pageofSensor1';
+                }
+
                 
 
 
