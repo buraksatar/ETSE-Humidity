@@ -34,6 +34,9 @@
 	ChipID numbers and subscription address of all active sensors  :
 	<p id="allChipIDNumbers"></p>
 
+    HAHA  :
+	<p id="deneme"></p>
+
     <form id=addClient action="configuration" method="post">
         Write the chip number to add a new client <input type="text" name="number"/>
         <input type="text" name="description"/> 
@@ -42,15 +45,16 @@
 
     <div id="mainTable"></div>
     
-    <form id=deleteClient action="configuration" method="post">
+    <form id=selectDeleteOrUnsubscribe action="configuration" method="post">
+       
        <input id='deleteChipID' type="text" name="numberForDelete" value='' />
-       <input type="submit" value='Delete The Client' />
+       
+       <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
+       
+       <input type="submit" value='Select The Action' />
+
     </form>
 
-    <form id=unsubscribeClient action="configuration" method="post">
-       <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
-       <input type="submit" value='Unsubscribe The Client' />
-    </form>
 
 <script>
     // TAKE THE DIFFERENTIATION of WHOLE SENSORS AND ACTIVE SENSORS 
@@ -207,8 +211,15 @@
     		// CREATE A TABLE ROW ELEMENT
     		bodyDatas.row = document.createElement("tr");
    			
-            // FILL THE ROWS WITH DATAS 
-			createElement(tagDatas.registered[i]);
+            // FILL THE ROWS WITH DATAS
+
+            var link = document.createElement('a');
+            link.textContent = tagDatas.registered[i];
+            link.href = '/pageofSensor'+(1);
+            document.getElementById('deneme').appendChild(link);
+
+            createLink(link);
+			//createElement(tagDatas.registered[i]);
 			createElement(1);
             createElement(tagDatas.registeredDescription[i]);
             getLatestTemp('?',i);
@@ -235,7 +246,14 @@
       		bodyDatas.row.appendChild(cell);
 		}
         
-        
+        // FUNCTION TO LINK ELEMENTS
+  		function createLink(xData){
+ 			var cell = document.createElement("td");
+      		var cellText = xData;
+
+      		cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
         
 
         // FUNCTION TO CREATE ELEMENTS
@@ -256,7 +274,6 @@
             checkbox.name = "Keslan"+ n;
             checkbox.value = "sikko"+n;
             checkbox.id = "checkedDeneme"+n;
-            checkbox.form = "deleteClient";
 
             // ASSING THEM TO THE VARIABLES
             bodyDatas.checked.push(checkbox);
@@ -271,7 +288,6 @@
             checkbox.name = "Suslan"+ n;
             checkbox.value = "sikko"+n;
             checkbox.id = "checkedUnsubcribe"+n;
-            checkbox.form = "unsubscribeClient";
 
             // ASSING THEM TO THE VARIABLES
             bodyDatas.checked.push(checkbox);
@@ -330,8 +346,22 @@
             	console.log('process complete');
         	},
         	success: function(data) {
+                //to reload the page with every change
+                if ( data.deneme == 1 ){
+                    location.reload();
+                }
+
                 var bok = data.sikerler;
-                console.log(data.alertAlreadyAdd);
+            
+                //var link = document.createElement('a');
+                //link.textContent = tagDatas.registered[0];
+                //link.href = 'http://your.domain.tld/some/path';
+                //document.getElementById('deneme').appendChild(link);
+                //document.getElementById("deneme").innerHTML = link;
+        
+                //console.log(tagDatas.registered[0]);
+                //document.getElementById("deneme").innerHTML = '<a href="http://your.domain.tld">tagDatas.registered[0]</a>';
+
                 //alert messages
                 // to show alert message when the user enter client id that already registered 
                 if( data.alertAlreadyAdd == 1 ){
@@ -345,6 +375,12 @@
                 }
                 if( data.alertSuccessUnsubscribed == 1 ){
                     alert("Unsubscribed Successfully!");
+                }
+                if( data.alertWrongClientIDSyntax == 1 ){
+                    alert("Wrong ClientID Syntax! It can't has any letters");
+                }
+                if( data.alertWrongClientID7Digit == 1 ){
+                    alert("It has to be 7 digit!");
                 }
                 
 
@@ -366,12 +402,6 @@
                 //console.log('son deger ' + tagDatas.cellText[i].nodeValue)
                 console.log('son deger ' + tagDatas.bokbok)
                 
-
-                console.log('sikeyim boyle isi ' + tagDatas.bokbok);
-
-                if ( data.deneme == 1 ){
-                    location.reload();
-                }
 
                 // get lenght of the chipID table 
                 tagDatas.chipIDid = data.tagId;
