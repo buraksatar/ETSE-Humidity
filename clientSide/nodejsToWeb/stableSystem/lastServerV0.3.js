@@ -15,7 +15,7 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
 {
     // Checking Process
     // read the table if there is any, with the same name
-    connection.query('SELECT * FROM chipID;', 
+    connection.query('SELECT * FROM registeredClients;', 
         function (error, rows) 
         {
             // error handling
@@ -28,7 +28,7 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
             // if the number which we want to add into database is already installed
             // checkValue can't be zero.
 	        for(var i=0;i<rows.length;i++){
-                if ( dataFromForm.number == tagDatas.subscriptionName[i] ){
+                if ( dataFromForm.number == registeredClients.subscriptionName[i] ){
                     checkValue++;
                 }
             }
@@ -36,27 +36,10 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
             if (checkValue == 0){
                 // if the client isnt registred yet,
                 // save the new client to the chipID table in mysqldatabase
-                if (tagDatas.subscriptionName != ''){
-                // if the value has a value
-                    var nthVar = tagDatas.subscriptionName.slice(-1);
-                    if(parseInt(nthVar[0].slice(-2)) != '')
-                    {
-                        var sensorQueueNumber = parseInt(nthVar[0].slice(-1)) + 1 ;
-                    }
-                    else {
-                        var sensorQueueNumber = parseInt(nthVar[0].slice(-2)) + 1 ;
-                    }
-                      
-                    //console.log(sensorQueueNumber);
-                    var sensorQueue = 's'+ sensorQueueNumber;
-                }
-                else {
-                // else the value has not a value, default value should be s1 which stands for sensor1
-                    var sensorQueue = 's1';
-                }
+                
                 // insert the client value into chipID table
-                connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.number + sensorQueue
-                                                , description: dataFromForm.description} , 
+                connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.number, 
+                                                            description: dataFromForm.description} , 
                     function (err, result) {
                         // error handling
                         if (err) {
@@ -70,7 +53,7 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                 
                 // create a new table according to new client, 
                 // so that the data comes to new client can be saved in related table
-                connection.query('CREATE TABLE '+ dataFromForm.number + sensorQueue +
+                connection.query('CREATE TABLE s'  + dataFromForm.number + 
                      ' ( id INT PRIMARY KEY AUTO_INCREMENT, temp VARCHAR(255) NOT NULL,'+
                      ' res VARCHAR(255) NOT NULL, adc VARCHAR(255) NOT NULL, mux VARCHAR(255) NOT NULL,'+
                      ' time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, unixTime INT );',
@@ -87,8 +70,8 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                 );
 
                 // STORE THE REGISTERED AND SUBSCRIBED CLIENTS AT VARIABLE TABLE
-                connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number + sensorQueue
-                                                , description: dataFromForm.description}  , 
+                connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number, 
+                                                                    description: dataFromForm.description}  , 
                     function (err, result) {
                         // error handling
                         if (err) {
@@ -124,7 +107,7 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
 {
     // if form is not blank
     if(dataFromForm.number != ''){
-         connection.query('SELECT * FROM chipID;', 
+         connection.query('SELECT * FROM registeredClients;', 
             function (error, rows) 
             {
                 // error handling
@@ -164,7 +147,7 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
                     );
                     //checkIndex++;
                     // delete related table from the database 
-                    connection.query('DROP TABLE '+ dataFromForm.number ,
+                    connection.query('DROP TABLE s'+ dataFromForm.number ,
                         function(err, result){
                         // Case there is an error during the creation
                             if(err) {
@@ -210,7 +193,7 @@ var unsubsribeClientFunction = function unsubsribeClientFunction()
 {
     // if form is not blank
     if(dataFromForm.unsubscribe != ''){
-         connection.query('SELECT * FROM chipID;', 
+         connection.query('SELECT * FROM registeredClients;', 
             function (error, rows) 
             {
                 // error handling
