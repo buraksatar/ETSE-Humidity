@@ -32,62 +32,74 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                     checkValue++;
                 }
             }
-            // if zero, the number hasnt installed into database yet.
-            if (checkValue == 0){
-                // if the client isnt registred yet,
-                // save the new client to the chipID table in mysqldatabase
-                
-                // insert the client value into chipID table
-                connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.number, 
-                                                            description: dataFromForm.description} , 
-                    function (err, result) {
-                        // error handling
-                        if (err) {
-                            console.error(err);
-      	                }
-                        else{
-                            console.error(result);
-                        }
-                    }
-                );
-                
-                // create a new table according to new client, 
-                // so that the data comes to new client can be saved in related table
-                connection.query('CREATE TABLE s'  + dataFromForm.number + 
-                     ' ( id INT PRIMARY KEY AUTO_INCREMENT, temp VARCHAR(255) NOT NULL,'+
-                     ' res VARCHAR(255) NOT NULL, adc VARCHAR(255) NOT NULL, mux VARCHAR(255) NOT NULL,'+
-                     ' time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, unixTime INT );',
-                    // error handling
-                    function(err, result){
-                        // Case there is an error during the creation
-                        if(err) {
-                            console.log(err);
-                        } 
-                        else {
-                            console.log("New client's table created succesfully");
-                        }
-                    }
-                );
+            if( !isNaN(dataFromForm.number) ){
+                if( dataFromForm.number.length == 7 ){
+                    // if zero, the number hasnt installed into database yet.
+                    if (checkValue == 0){
+                        // if the client isnt registred yet,
+                        // save the new client to the chipID table in mysqldatabase
+                        
+                        // insert the client value into chipID table
+                        connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.number, 
+                                                                    description: dataFromForm.description} , 
+                            function (err, result) {
+                                // error handling
+                                if (err) {
+                                    console.error(err);
+                                }
+                                else{
+                                    console.error(result);
+                                }
+                            }
+                        );
+                        
+                        // create a new table according to new client, 
+                        // so that the data comes to new client can be saved in related table
+                        connection.query('CREATE TABLE s'  + dataFromForm.number + 
+                            ' ( id INT PRIMARY KEY AUTO_INCREMENT, temp VARCHAR(255) NOT NULL,'+
+                            ' res VARCHAR(255) NOT NULL, adc VARCHAR(255) NOT NULL, mux VARCHAR(255) NOT NULL,'+
+                            ' time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, unixTime INT );',
+                            // error handling
+                            function(err, result){
+                                // Case there is an error during the creation
+                                if(err) {
+                                    console.log(err);
+                                } 
+                                else {
+                                    console.log("New client's table created succesfully");
+                                }
+                            }
+                        );
 
-                // STORE THE REGISTERED AND SUBSCRIBED CLIENTS AT VARIABLE TABLE
-                connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number, 
-                                                                    description: dataFromForm.description}  , 
-                    function (err, result) {
-                        // error handling
-                        if (err) {
-                            console.error(err);
-      	                }
-                        else{
-                            console.error(result);
-                        }
-                    }
-                );
-                alertMessages.addedSuccessfully++;
+                        // STORE THE REGISTERED AND SUBSCRIBED CLIENTS AT VARIABLE TABLE
+                        connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number, 
+                                                                            description: dataFromForm.description}  , 
+                            function (err, result) {
+                                // error handling
+                                if (err) {
+                                    console.error(err);
+                                }
+                                else{
+                                    console.error(result);
+                                }
+                            }
+                        );
+                        alertMessages.addedSuccessfully++;
 
+                    }
+                    else {
+                        console.log('This client ID is already registered');
+                        alertMessages.alreadyRegisteredClient++;
+                    }
+                }
+                else {
+                    console.log('It has to be seven digit');
+                    alertMessages.wrongClientID7Digit++;
+                }        
             }
             else {
-                console.log('This client ID is already registered');
-                alertMessages.alreadyRegisteredClient++;
+                console.log('Wrong ClientID Syntax! It cant has any letters');
+                alertMessages.wrongClientIDSyntax++;
             }
         }
     );
@@ -249,6 +261,62 @@ var unsubsribeClientFunction = function unsubsribeClientFunction()
 eventEmitter.on('unsubsribeClient', unsubsribeClientFunction);
 
 
+
+var clickPageFunction = function clickPageFunction()
+{
+
+    //console.log(dataFromForm.linkClicked);
+    //console.log('GOT');
+    tagDatas.routePage++;
+ 
+    //window.location.href = '/pageofSensor1';
+    // call the webpage with that name
+	app.get('/pageofSensor1', function(req, res) {
+
+        
+
+		// reaching the related table in database, for example sensor1, sensor2, sensor3 ...
+		connection.query('SELECT * FROM s' + registeredClients.subscriptionName[0] + ';', function (error, rows) 
+		{ 
+			// gets data from database and assing them related array
+			for(var i=0;i<rows.length;i++){
+    			pageOfSensor.temp.push(rows[i].temp);
+				pageOfSensor.res.push(rows[i].res);
+				pageOfSensor.adc.push(rows[i].adc);
+				pageOfSensor.mux.push(rows[i].mux);
+				pageOfSensor.id.push(rows[i].id);
+   			}
+
+			// use res.render to load up an ejs view file
+			res.render('pages/pageofSensor1' ,{
+				//send the data with those names as an array
+        		pageTemp : pageOfSensor.temp,
+				pageRes : pageOfSensor.res,
+				pageAdc : pageOfSensor.adc,
+				pageMux : pageOfSensor.mux,
+				pageId : pageOfSensor.id
+ 			});
+            
+            //res.json({ user: 'tobi' });
+			// make the variables zero to prevent overriding
+			//pageOfSensor.temp =[]; 
+			//pageOfSensor.res = [];
+			//pageOfSensor.adc=[];
+			//pageOfSensor.mux=[];
+			//pageOfSensor.id=[];
+		});			
+
+	});
+    //window.location.href = '/pageofSensor1';
+
+}
+// when clickPage event emitted, clickPageFunction starts
+eventEmitter.on('clickPage', clickPageFunction);
+
+
+
+
+
 //database settingsd
 var connection = mysql.createConnection({
   	host: 'localhost',
@@ -260,19 +328,21 @@ var connection = mysql.createConnection({
 
 connection.connect();
 
-var datas = {
+var pageOfSensor = {
     id : [],
 	res : [],
     temp : [],
     adc : [],
     mux : []
-};
+}
 
 var alertMessages = {
     alreadyRegisteredClient : 0,
     addedSuccessfully : 0,
     deletedSuccessfully : 0,
-    unsubscribedSuccessfully : 0
+    unsubscribedSuccessfully : 0,
+    wrongClientIDSyntax : 0,
+    wrongClientID7Digit : 0
 }
 
 var postDatass = {
@@ -288,7 +358,8 @@ var tagDatas = {
     chipIDunixTime : [],
     chipIDid : [],
     chipIDdescription : [],
-    deneme : 0
+    deneme : 0,
+    routePage : 0
 };
 
 var sensorAll = [];
@@ -296,7 +367,8 @@ var sensorAll = [];
 var dataFromForm = {
 	number : [],
     description : [],
-    unsubscribe : []
+    unsubscribe : [],
+    linkClicked : []
 };
 
 var registeredClients = {
@@ -395,9 +467,12 @@ app.post('/configuration', function(req, res) {
     }
     if ( req.body.numberForUnsubscribe ){
         dataFromForm.unsubscribe = req.body.numberForUnsubscribe;
-        eventEmitter.emit('unsubsribeClient');
+        eventEmitter.emit('unsubsribeClient');     
     }
-
+    if ( req.body.sikko ){
+        dataFromForm.linkClicked = req.body.sikko;
+        eventEmitter.emit('clickPage'); 
+    }
     tagDatas.deneme = 1;
 
 });
@@ -446,8 +521,6 @@ function subscribeAll(){
                 console.log(sensorAll[i]);
                 client.subscribe('/data/' + tagDatas.subscriptionName[i]);
             }
-            
-            //readDatafromSensor();
 
         });
     })
@@ -478,7 +551,10 @@ app.post('/getBuff', function(req, res) {
         alertAlreadyAdd : alertMessages.alreadyRegisteredClient,
         alertSuccessAdded : alertMessages.addedSuccessfully,
         alertSuccessDeleted : alertMessages.deletedSuccessfully,
-        alertSuccessUnsubscribed : alertMessages.unsubscribedSuccessfully
+        alertSuccessUnsubscribed : alertMessages.unsubscribedSuccessfully,
+        alertWrongClientIDSyntax : alertMessages.wrongClientIDSyntax,
+        alertWrongClientID7Digit : alertMessages.wrongClientID7Digit,
+        routePage : tagDatas.routePage
 	});
     
   
@@ -487,13 +563,16 @@ app.post('/getBuff', function(req, res) {
     alertMessages.addedSuccessfully = 0;
     alertMessages.deletedSuccessfully = 0;
     alertMessages.unsubscribedSuccessfully = 0 ;
+    alertMessages.wrongClientIDSyntax = 0;
+    alertMessages.wrongClientID7Digit = 0;
     postDatass.temp = 0;
     postDatass.chipID = 0;
+    tagDatas.routePage = 0;
 });
 
 function readDatafromSensor1(chipIDofSensor){
 
-        connection.query('SELECT * FROM ' + chipIDofSensor, 
+        connection.query('SELECT * FROM s' + chipIDofSensor, 
             function (error, rows) 
             {
                 if (error) throw error;
@@ -511,9 +590,6 @@ function readDatafromSensor1(chipIDofSensor){
                     
                     }    
                 }
-                
-                console.log('hadiartik '+postDatass.bokbok);
-
               
             }
         );      
@@ -553,7 +629,7 @@ function mqtt2sql(chipIDofSensor) {
             };
             
             // put post values to table of sensor1 in MYSQL database
-            var query = connection.query('INSERT INTO '+ chipIDofSensor + ' SET ?', post , function (err, result) {
+            var query = connection.query('INSERT INTO s'+ chipIDofSensor + ' SET ?', post , function (err, result) {
             
                 if (err) {
                     //console.error(err);
@@ -567,5 +643,13 @@ function mqtt2sql(chipIDofSensor) {
         }              
     })
 }
+
+
+
+
+
+
+
+
 app.listen(8080);
 console.log('the port: 8080, is active ');
