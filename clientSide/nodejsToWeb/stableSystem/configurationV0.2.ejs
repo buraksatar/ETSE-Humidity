@@ -1,0 +1,471 @@
+<!-- views/pages/configuration.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+</head>
+
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container", onload= >
+    
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+    <form action="configuration" method="get">
+        <select id="dynamicSensorList" =></select>
+    </form>
+
+	You have <div id="numberOfSensor"></div> subscribed sensor in your network
+	
+	<br><br>
+
+    You have <div id="numberOfRegisteredSensor"></div> total sensor in your network
+    
+    <br>
+
+    <br>
+	ChipID numbers and subscription address of all active sensors  :
+	<p id="allChipIDNumbers"></p>
+
+    <form id=addClient action="configuration" method="post">
+        Write the chip number to add a new client <input type="text" name="number"/>
+        <input type="text" name="description"/> 
+        <input type="submit" value='Add a New Client to The Server' />
+    </form>
+
+    <div id="mainTable"></div>
+    
+    <form id=deleteClient action="configuration" method="post">
+       <input id='deleteChipID' type="text" name="numberForDelete" value='' />
+       <input type="submit" value='Delete The Client' />
+    </form>
+
+    <form id=unsubscribeClient action="configuration" method="post">
+       <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
+       <input type="submit" value='Unsubscribe The Client' />
+    </form>
+
+<script>
+    // TAKE THE DIFFERENTIATION of WHOLE SENSORS AND ACTIVE SENSORS 
+    Array.prototype.diff = function(a) {
+        return this.filter(
+            function(i) {
+                if (a.indexOf(i) < 0){
+                    tagDatas.registeredStatus.push('Unsubscribed');
+                }
+                else {
+                    tagDatas.registeredStatus.push('Subscribed');
+                }                   
+            }
+        );
+    };
+    
+    // GENERAL VARIABLES FOR GENERAL ASPECTS
+    var general = {
+        previous : [],
+        latest : [],
+        elem : [],
+        deneme : 0,
+        elemUnSubscribe : [],
+        sikForUnsubcribe : 0,
+        sayacForTable : 0,
+        sayacForStatus : 0,
+        intervalForMainAjaxCall : null,
+        sayacForUpdate : 0,
+        kodumunSayaci : 0,
+        sikiminSayaci : 0
+    }
+    // GENERAL VARIABLES FOR TABLE CREATION
+    var bodyDatas = {
+        body : [],
+        tbl : [],
+        divTable : [],
+        tblBody : [],
+        row : [],
+        checked : []
+    }
+    // GENERAL VARIABLES FOR CHIPID and REGISTERED TABLES
+    var tagDatas = {
+        chipIDname : [],
+	    chipIDnumber : [],
+        chipIDqueue : [],
+        chipIDunixTime : [],
+        chipIDid : [],
+        sensorLength : 0,
+        chipIDdescription : [],
+        registered : [],
+        registeredStatus : [],
+        registeredDescription : [],
+        chipID : [],
+        cellText : [],
+        bokbok : [],
+        sikerler : []
+    };
+
+    var alertMessages = {
+        alertAlreadyAdd : 0
+    }
+
+ 
+    // GET ALL DATA FROM EXPRESSJS AND ASSING THEM TO THE TAGDATAS VARIABLES
+    <%for(var i=0;i < tagId.length; i++){ %>
+        tagDatas.chipIDid.push(<%= tagId[i] %>);
+        tagDatas.chipIDunixTime.push(<%= tagUnixTime[i] %>);
+        tagDatas.chipIDnumber.push('<%= tagNumber[i] %>');
+        tagDatas.chipIDdescription.push('<%= tagDescription[i] %>');
+        tagDatas.sikerler.push('<%= sikerlerTemp[i] %>');
+	<% } %>
+    
+    console.log('sikmisler' + tagDatas.sikerler);
+    <%for(var i=0;i < tagRegistered.length; i++){ %>
+        tagDatas.registered.push('<%= tagRegistered[i] %>');
+        tagDatas.registeredDescription.push('<%= descriptionOfRegistered[i] %>');
+	<% } %>
+
+    // SHOW HOW MANY CLIENTS ACTIVE
+    document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length;
+    
+    for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
+        document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDnumber[i] + ' <br />';
+    }
+
+    // SHOW HOW MANY CLIENTS REGISTERED
+    document.getElementById("numberOfRegisteredSensor").innerHTML = tagDatas.registered.length;
+
+    // DYNAMIC SENSOR LIST, DEFINITION         
+    var select = document.getElementById("dynamicSensorList");
+    select.options[0] = new Option('Select a Sensor', 'sensor0');
+    // GET DATAS FROM REGISTERED TABLE AND CREATE DYNAMIC LIST
+    for(var i=0; i<= tagDatas.registered.length -1 ; i++) {
+        select.options[select.options.length] = new Option(tagDatas.registered[i], 'sensor'+ (parseInt(i)+1) );
+    }
+
+
+
+    tagDatas.sensorLength = select.options.length;
+
+
+    // FOR STATUS CELL ON THE DYNAMIC TABLE
+  	// IF REGISTERED TABLE AND CHIPID TABLE EQUAL THAT MEANS ALL STATUS HAS TO BE 'SUBSCRIBED'
+    if( tagDatas.registered.length == tagDatas.chipIDid.length ){
+        for(var i=0;i < tagDatas.registered.length ; i++){
+            tagDatas.registeredStatus.push('Subscribed');
+            tagDatas.registeredClientNumber++;
+        }
+    }
+    // IF IT IS NOT EQUAL, CALL THE DIFFERENTIATION FUNCTION
+    else {
+        tagDatas.registered.diff(tagDatas.chipIDnumber); 
+    }
+
+    // CALL THE GENERATE TABLE FUNCTION
+    generate_table();
+
+
+    // GENERATE TABLE FUNCTION
+    function generate_table() {
+        
+        // GET THE REFERENCE FOR THE BODY
+  		bodyDatas.body = document.getElementsByTagName("body")[0];
+
+
+ 		// CREATES A <TABLE>, <DIV>, <TBODY>, <TR> ELEMENTS
+  		bodyDatas.tbl     = document.createElement("table");
+		bodyDatas.divTable = document.createElement("div");       
+  		bodyDatas.tblBody = document.createElement("tbody");
+ 		bodyDatas.row = document.createElement("tr");
+		
+		// CREATE THE COLUMNS FUNCTION
+        function createColumn (name){
+            var TH = document.createElement("th");
+            var th = document.createTextNode(name);
+            TH.appendChild(th);
+		    bodyDatas.row.appendChild(TH)
+        }
+
+        // CREATE COLUMNS
+        createColumn('chipID');
+        createColumn('Type');
+        createColumn('Description');
+        createColumn('Temperature');
+        createColumn('Humidity');
+        createColumn('Select');
+        createColumn('Status');
+	
+        // APPEND THE ROWS TO THE BODY
+		bodyDatas.tblBody.appendChild(bodyDatas.row)
+
+        // CREATE ALL CELLS
+  		for(var i=0;i < tagDatas.registered.length ; i++){
+    		// CREATE A TABLE ROW ELEMENT
+    		bodyDatas.row = document.createElement("tr");
+   			
+            // FILL THE ROWS WITH DATAS 
+			createElement(tagDatas.registered[i]);
+			createElement(1);
+            createElement(tagDatas.registeredDescription[i]);
+            getLatestTemp('?',i);
+
+
+            createElement('?');
+            checkBoxForDelete(i+1);
+            checkBoxForUnsubscribe(i+1);
+            createElement(tagDatas.registeredStatus[i]);
+			
+    		// ADD THE ROW TO THE END OF THE TABLE
+    		bodyDatas.tblBody.appendChild(bodyDatas.row);
+  		}
+        
+        // Function to get latest Temp 
+  		function getLatestTemp(xData,i){
+ 			var cell = document.createElement("td");
+            
+      		var cellText = document.createTextNode(xData);
+            tagDatas.cellText.push(cellText);
+            tagDatas.cellText[i].nodeValue = tagDatas.sikerler[i];
+
+      		cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+        
+        
+        
+
+        // FUNCTION TO CREATE ELEMENTS
+  		function createElement(xData){
+ 			var cell = document.createElement("td");
+      		var cellText = document.createTextNode(xData);
+
+      		cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+        
+
+        // CREATE CHECKBOX FOR  DELETING
+        function checkBoxForDelete(n){
+            var checkbox = document.createElement('input');
+      		
+            checkbox.type = "checkbox";
+            checkbox.name = "Keslan"+ n;
+            checkbox.value = "sikko"+n;
+            checkbox.id = "checkedDeneme"+n;
+            checkbox.form = "deleteClient";
+
+            // ASSING THEM TO THE VARIABLES
+            bodyDatas.checked.push(checkbox);
+      		bodyDatas.row.appendChild(checkbox);
+		}
+        
+        // CREATE CHECKBOX FOR UNSUBSCRIBING
+        function checkBoxForUnsubscribe(n){
+            var checkbox = document.createElement('input');
+      		
+            checkbox.type = "checkbox";
+            checkbox.name = "Suslan"+ n;
+            checkbox.value = "sikko"+n;
+            checkbox.id = "checkedUnsubcribe"+n;
+            checkbox.form = "unsubscribeClient";
+
+            // ASSING THEM TO THE VARIABLES
+            bodyDatas.checked.push(checkbox);
+      		bodyDatas.row.appendChild(checkbox);
+		}
+
+        // APPENDING   
+  		bodyDatas.tbl.appendChild(bodyDatas.tblBody);	
+		bodyDatas.divTable.appendChild(bodyDatas.tbl);
+        document.getElementById("mainTable").appendChild(bodyDatas.divTable);
+  		bodyDatas.body.appendChild(document.getElementById("mainTable"));
+  		bodyDatas.tbl.setAttribute("border", "2");
+        
+
+    }
+
+    ///// ?????
+    general.sayacForUpdate = tagDatas.chipIDid.length;
+    console.log('-1' + general.sayacForUpdate);
+    
+    function update_table(){   
+
+        console.log('-1' + general.latest);
+        console.log('-1' + general.sayacForUpdate);
+
+        if( general.sayacForUpdate != general.latest ){
+            location.reload();
+            console.log('bok');
+            generate_table();
+        }else{
+
+        } 
+        general.sayacForUpdate = general.latest;
+        general.latest = tagDatas.chipIDid.length;
+        
+    }  
+
+
+
+    
+    // Call the main ajax funtion
+    general.intervalForMainAjaxCall = setInterval(ajaxCall,1000);
+
+    function ajaxCall() {
+	
+	    $.ajax({
+        	url: "/getBuff",
+        	type: "POST",
+        	dataType: "json",
+        	data: {},
+        	contentType: "application/json",
+        	cache: false,
+        	timeout: 3000,
+        	complete: function() {
+           		//called when complete
+            	console.log('process complete');
+        	},
+        	success: function(data) {
+                var bok = data.sikerler;
+                console.log(data.alertAlreadyAdd);
+                //alert messages
+                // to show alert message when the user enter client id that already registered 
+                if( data.alertAlreadyAdd == 1 ){
+                    alert("This client ID is already registered!");
+                }
+                if( data.alertSuccessAdded == 1 ){
+                    alert("Successfully added!");
+                }
+                if( data.alertSuccessDeleted == 1 ){
+                    alert("Deleted Successfully!");
+                }
+                if( data.alertSuccessUnsubscribed == 1 ){
+                    alert("Unsubscribed Successfully!");
+                }
+                
+
+
+                if ( data.postTempp != 0 ){
+                    
+                    for(var i=0; i<tagDatas.registered.length; i++){
+                        if(data.subscriptionIDD == tagDatas.registered[i]){
+                            tagDatas.cellText[i].nodeValue = data.postTempp;
+                        }
+                        else{
+
+                        }
+
+                        tagDatas.bokbok.push(tagDatas.cellText[i].nodeValue);
+                    }
+                    
+                }
+                //console.log('son deger ' + tagDatas.cellText[i].nodeValue)
+                console.log('son deger ' + tagDatas.bokbok)
+                
+
+                console.log('sikeyim boyle isi ' + tagDatas.bokbok);
+
+                if ( data.deneme == 1 ){
+                    location.reload();
+                }
+
+                // get lenght of the chipID table 
+                tagDatas.chipIDid = data.tagId;
+                document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length;
+
+                // get lenght of the registeredClients table 
+                tagDatas.registered = data.tagRegistered;
+                document.getElementById("numberOfRegisteredSensor").innerHTML = tagDatas.registered.length;
+
+                // chipID number of active sensors
+                tagDatas.chipIDnumber = data.tagNumber;
+                // chipID number+queue(subscripton address) of active sensors
+
+                // get all things from chipID table
+                document.getElementById("allChipIDNumbers").innerHTML = '';
+                for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
+                    document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDnumber[i] + ' <br />';
+                }
+                
+                // FOR DYNAMIC SELECT 
+                if ( tagDatas.registered.length != tagDatas.sensorLength)
+                {
+                    select.options.length = 0;
+                    select.options[0] = new Option('Select a Sensor', 'sensor0');
+                    
+                    for(var i=0; i<= tagDatas.registered.length -1 ; i++) {
+                        select.options[select.options.length] = new Option(tagDatas.registered[i], 'sensor'+ (parseInt(i)+1) );
+                    }
+                    tagDatas.sensorLength = tagDatas.registered.length;
+
+                }
+
+                general.latest = data.tagId.length;
+
+                //update_table();
+
+                // Dynamic List , get from registered table
+                for ( i=0;i<tagDatas.registered.length;i++ ){
+                    if(select.options[select.selectedIndex].value == 'sensor' + (i+1) )
+                    {
+                        window.location.href = '/pageofSensor' + (i+1)
+                    }
+                }
+                
+
+                
+                for ( var i=0;i<tagDatas.registered.length;i++ ){   
+                    var a = 0;
+                    a = i+1;
+                    /// FOR DELETE THE CLIENT
+                    general.elem.push( document.getElementById('checkedDeneme'+a) );
+    
+                    general.elem[i].checked == false;
+
+                   if ( general.elem && general.elem[i].checked == true ){
+                        document.getElementById("deleteChipID").value = '';
+                        document.getElementById("deleteChipID").value = tagDatas.registered[i]; // Get text field
+                        general.deneme = i;
+                   }
+                   else if ( general.elem && general.elem[general.deneme].checked == false ){
+                            document.getElementById("deleteChipID").value = '';
+                    }
+
+                       
+                    //FOR UNSUBSCRIBE THE CLIENT
+                    general.elemUnSubscribe.push( document.getElementById('checkedUnsubcribe'+a) );
+
+                    general.elemUnSubscribe[i].checked == false;
+
+                    if ( general.elemUnSubscribe && general.elemUnSubscribe[i].checked == true ){
+                        document.getElementById("unsubscribeChipID").value = '';
+                        document.getElementById("unsubscribeChipID").value = tagDatas.registered[i]; // Get text field
+                        general.sikForUnsubcribe = i;
+                    }
+                    else if ( general.elemUnSubscribe && general.elemUnSubscribe[general.sikForUnsubcribe].checked == false ){
+                            document.getElementById("unsubscribeChipID").value = '';
+                    }
+
+                }
+
+
+                             
+  	    	},
+        	error: function() {
+               		console.log('process error');
+        	},
+	    });
+    }
+
+</script>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
