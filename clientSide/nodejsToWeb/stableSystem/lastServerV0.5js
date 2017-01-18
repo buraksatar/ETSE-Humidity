@@ -15,7 +15,7 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
 {
     // Checking Process
     // read the table if there is any, with the same name
-    connection.query('SELECT * FROM chipID;', 
+    connection.query('SELECT * FROM registeredClients;', 
         function (error, rows) 
         {
             // error handling
@@ -28,66 +28,78 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
             // if the number which we want to add into database is already installed
             // checkValue can't be zero.
 	        for(var i=0;i<rows.length;i++){
-                if ( dataFromForm.number == tagDatas.subscriptionName[i] ){
+                if ( dataFromForm.number == registeredClients.subscriptionName[i] ){
                     checkValue++;
                 }
             }
-            // if zero, the number hasnt installed into database yet.
-            if (checkValue == 0){
-                // if the client isnt registred yet,
-                // save the new client to the chipID table in mysqldatabase
-                
-                // insert the client value into chipID table
-                connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.number, 
-                                                            description: dataFromForm.description} , 
-                    function (err, result) {
-                        // error handling
-                        if (err) {
-                            console.error(err);
-      	                }
-                        else{
-                            console.error(result);
-                        }
-                    }
-                );
-                
-                // create a new table according to new client, 
-                // so that the data comes to new client can be saved in related table
-                connection.query('CREATE TABLE s'  + dataFromForm.number + 
-                     ' ( id INT PRIMARY KEY AUTO_INCREMENT, temp VARCHAR(255) NOT NULL,'+
-                     ' res VARCHAR(255) NOT NULL, adc VARCHAR(255) NOT NULL, mux VARCHAR(255) NOT NULL,'+
-                     ' time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, unixTime INT );',
-                    // error handling
-                    function(err, result){
-                        // Case there is an error during the creation
-                        if(err) {
-                            console.log(err);
-                        } 
-                        else {
-                            console.log("New client's table created succesfully");
-                        }
-                    }
-                );
+            if( !isNaN(dataFromForm.number) ){
+                if( dataFromForm.number.length == 7 ){
+                    // if zero, the number hasnt installed into database yet.
+                    if (checkValue == 0){
+                        // if the client isnt registred yet,
+                        // save the new client to the chipID table in mysqldatabase
+                        
+                        // insert the client value into chipID table
+                        connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.number, 
+                                                                    description: dataFromForm.description} , 
+                            function (err, result) {
+                                // error handling
+                                if (err) {
+                                    console.error(err);
+                                }
+                                else{
+                                    console.error(result);
+                                }
+                            }
+                        );
+                        
+                        // create a new table according to new client, 
+                        // so that the data comes to new client can be saved in related table
+                        connection.query('CREATE TABLE s'  + dataFromForm.number + 
+                            ' ( id INT PRIMARY KEY AUTO_INCREMENT, temp VARCHAR(255) NOT NULL,'+
+                            ' res VARCHAR(255) NOT NULL, adc VARCHAR(255) NOT NULL, mux VARCHAR(255) NOT NULL,'+
+                            ' time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, unixTime INT );',
+                            // error handling
+                            function(err, result){
+                                // Case there is an error during the creation
+                                if(err) {
+                                    console.log(err);
+                                } 
+                                else {
+                                    console.log("New client's table created succesfully");
+                                }
+                            }
+                        );
 
-                // STORE THE REGISTERED AND SUBSCRIBED CLIENTS AT VARIABLE TABLE
-                connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number, 
-                                                                    description: dataFromForm.description}  , 
-                    function (err, result) {
-                        // error handling
-                        if (err) {
-                            console.error(err);
-      	                }
-                        else{
-                            console.error(result);
-                        }
-                    }
-                );
-                alertMessages.addedSuccessfully++;
+                        // STORE THE REGISTERED AND SUBSCRIBED CLIENTS AT VARIABLE TABLE
+                        connection.query('INSERT INTO registeredClients SET ?', {clientName: dataFromForm.number, 
+                                                                            description: dataFromForm.description}  , 
+                            function (err, result) {
+                                // error handling
+                                if (err) {
+                                    console.error(err);
+                                }
+                                else{
+                                    console.error(result);
+                                }
+                            }
+                        );
+                        alertMessages.addedSuccessfully++;
 
+                    }
+                    else {
+                        console.log('This client ID is already registered');
+                        alertMessages.alreadyRegisteredClient++;
+                    }
+                }
+                else {
+                    console.log('It has to be seven digit');
+                    alertMessages.wrongClientID7Digit++;
+                }        
             }
             else {
-                console.log('This client ID is already registered');
-                alertMessages.alreadyRegisteredClient++;
+                console.log('Wrong ClientID Syntax! It cant has any letters');
+                alertMessages.wrongClientIDSyntax++;
             }
         }
     );
@@ -272,7 +284,9 @@ var alertMessages = {
     alreadyRegisteredClient : 0,
     addedSuccessfully : 0,
     deletedSuccessfully : 0,
-    unsubscribedSuccessfully : 0
+    unsubscribedSuccessfully : 0,
+    wrongClientIDSyntax : 0,
+    wrongClientID7Digit : 0
 }
 
 var postDatass = {
@@ -478,7 +492,9 @@ app.post('/getBuff', function(req, res) {
         alertAlreadyAdd : alertMessages.alreadyRegisteredClient,
         alertSuccessAdded : alertMessages.addedSuccessfully,
         alertSuccessDeleted : alertMessages.deletedSuccessfully,
-        alertSuccessUnsubscribed : alertMessages.unsubscribedSuccessfully
+        alertSuccessUnsubscribed : alertMessages.unsubscribedSuccessfully,
+        alertWrongClientIDSyntax : alertMessages.wrongClientIDSyntax,
+        alertWrongClientID7Digit : alertMessages.wrongClientID7Digit
 	});
     
   
@@ -487,6 +503,8 @@ app.post('/getBuff', function(req, res) {
     alertMessages.addedSuccessfully = 0;
     alertMessages.deletedSuccessfully = 0;
     alertMessages.unsubscribedSuccessfully = 0 ;
+    alertMessages.wrongClientIDSyntax = 0;
+    alertMessages.wrongClientID7Digit = 0;
     postDatass.temp = 0;
     postDatass.chipID = 0;
 });
