@@ -42,15 +42,16 @@
 
     <div id="mainTable"></div>
     
-    <form id=deleteClient action="configuration" method="post">
+    <form id=selectDeleteOrUnsubscribe action="configuration" method="post">
+       
        <input id='deleteChipID' type="text" name="numberForDelete" value='' />
-       <input type="submit" value='Delete The Client' />
+       
+       <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
+       
+       <input type="submit" value='Select The Action' />
+
     </form>
 
-    <form id=unsubscribeClient action="configuration" method="post">
-       <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
-       <input type="submit" value='Unsubscribe The Client' />
-    </form>
 
 <script>
     // TAKE THE DIFFERENTIATION of WHOLE SENSORS AND ACTIVE SENSORS 
@@ -256,7 +257,6 @@
             checkbox.name = "Keslan"+ n;
             checkbox.value = "sikko"+n;
             checkbox.id = "checkedDeneme"+n;
-            checkbox.form = "deleteClient";
 
             // ASSING THEM TO THE VARIABLES
             bodyDatas.checked.push(checkbox);
@@ -271,7 +271,6 @@
             checkbox.name = "Suslan"+ n;
             checkbox.value = "sikko"+n;
             checkbox.id = "checkedUnsubcribe"+n;
-            checkbox.form = "unsubscribeClient";
 
             // ASSING THEM TO THE VARIABLES
             bodyDatas.checked.push(checkbox);
