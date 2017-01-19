@@ -84,6 +84,26 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                                 }
                             }
                         );
+
+                        
+                        var post  = {
+                            temp: 0, 
+                            res: 0, 
+                            adc: 0, 
+                            mux: 0
+                        };
+            
+                    // put post values to table of sensor1 in MYSQL database
+                        connection.query('INSERT INTO s'+ dataFromForm.number + ' SET ?', post , function (err, result) {
+            
+                            if (err) {
+        		                return;
+      		                }
+
+                        });  
+
+
+
                         alertMessages.addedSuccessfully++;
 
                     }
@@ -182,6 +202,9 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
                             }
                         }
                     );
+
+
+
 
                     alertMessages.deletedSuccessfully++;
                     
@@ -312,7 +335,6 @@ var clickPageFunction = function clickPageFunction()
 eventEmitter.on('clickPage', clickPageFunction);
 
 
-
 //database settingsd
 var connection = mysql.createConnection({
   	host: 'localhost',
@@ -342,13 +364,6 @@ var alertMessages = {
     wrongClientID7Digit : 0
 }
 
-// deneme1 for getting latest data, directly from mqtt
-var postDatass = {
-	res : [],
-    temp : [],
-    chipID : [],
-    bokbok : []
-};
 
 //to store only subscribed Clients
 var tagDatas = {
@@ -432,29 +447,29 @@ function getDatafromRegisteredClientsTable(){
         registeredClients.subscriptionName = [];
         registeredClients.description = [];
         latestValue.temp = [];
+        latestValue.res = [];
 
         for(var i=0;i<rows.length;i++){
             registeredClients.subscriptionName.push(rows[i].clientName);
             registeredClients.description.push(rows[i].description);
     	}
-        //latestValue.temp = '';
+        
         for(var k=0; k<registeredClients.subscriptionName.length; k++){
-
+            
             connection.query('SELECT * FROM s'+ registeredClients.subscriptionName[k] +';', function (error, rows) 
             {
-                //console.log('latest temp hepsinin ' +        rows[rows.length-1].temp);
-                latestValue.temp.push( rows[rows.length-1].temp );
+                
+                    latestValue.temp.push( rows[rows.length-1].temp );
+                    latestValue.res.push( rows[rows.length-1].res )
                 
             });
         }
-        console.log('latest temp hepsinin ' +        latestValue.temp);
 
     });
 }
 
 
 app.get('/configuration', function(req, res) {
-    //console.log(postDatass.temp);
     res.render('pages' + '/configuration',{
 	//send the data with those names as an array
         tagNumber : tagDatas.subscriptionName,
@@ -463,8 +478,8 @@ app.get('/configuration', function(req, res) {
         tagDescription : tagDatas.chipIDdescription,
         tagRegistered : registeredClients.subscriptionName,
         descriptionOfRegistered : registeredClients.description,
-        sikerlerTemp : postDatass.bokbok,
-        latestTemp : latestValue.temp
+        latestTemp : latestValue.temp,
+        latestRes : latestValue.res
  	});
 });
 
@@ -557,10 +572,6 @@ app.post('/getBuff', function(req, res) {
         tagRegistered : registeredClients.subscriptionName,
         descriptionOfRegistered : registeredClients.description,
         deneme : tagDatas.deneme,
-        postTempp : postDatass.temp,
-        postRess : postDatass.res,
-        subscriptionIDD : postDatass.chipID,
-        sikerlerTemp : postDatass.bokbok,
         alertAlreadyAdd : alertMessages.alreadyRegisteredClient,
         alertSuccessAdded : alertMessages.addedSuccessfully,
         alertSuccessDeleted : alertMessages.deletedSuccessfully,
@@ -580,8 +591,6 @@ app.post('/getBuff', function(req, res) {
     alertMessages.unsubscribedSuccessfully = 0 ;
     alertMessages.wrongClientIDSyntax = 0;
     alertMessages.wrongClientID7Digit = 0;
-    postDatass.temp = 0;
-    postDatass.chipID = 0;
     tagDatas.routePage = 0;
 });
 
