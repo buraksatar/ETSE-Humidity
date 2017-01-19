@@ -81,8 +81,8 @@
         	
 	// assigning
 
-	<%for(var i=0;i < pageId.length; i++){ %>
-    	idData.push(<%=pageId[i]%>);
+	<%for(var i=1;i < pageId.length; i++){ %>
+    	idData.push(<%=pageId[i]%>-1);
 		tempData.push(<%=pageTemp[i]%>);
 		adcData.push(<%=pageAdc[i]%>);
 		resData.push(<%=pageRes[i]%>);
@@ -148,7 +148,7 @@
 		}
 		  
 		// creating all cells
-  		for(var i=0;i < <%=pageId.length%> ; i++){
+  		for(var i=0;i < <%=pageId.length-1%> ; i++){
     			// creates a table row
     			var row = document.createElement("tr");
    			
