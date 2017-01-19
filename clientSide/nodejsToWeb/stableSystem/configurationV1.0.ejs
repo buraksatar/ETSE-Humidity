@@ -18,11 +18,7 @@
         <% include ../partials/header %>
     </header>
 
-    <form action="configuration" method="get">
-        <select id="dynamicSensorList" =></select>
-    </form>
-
-	You have <div id="numberOfSensor"></div> subscribed sensor in your network
+    You have <div id="numberOfSensor"></div> subscribed sensor in your network
 	
 	<br><br>
 
@@ -34,8 +30,6 @@
 	ChipID numbers and subscription address of all active sensors  :
 	<p id="allChipIDNumbers"></p>
 
-    HAHA  :
-	<p id="deneme"></p>
 
     <form id=addClient action="configuration" method="post">
         Write the chip number to add a new client <input type="text" name="number"/>
@@ -72,6 +66,20 @@
                 }
                 else {
                     tagDatas.registeredStatus.push('Subscribed');
+                }                   
+            }
+        );
+    };
+
+    Array.prototype.diff2 = function(a) {
+        return this.filter(
+            function(i) {
+                if ( (a.indexOf(i) < 0) || (general.sikiminSayaci == 0) ){
+                    console.log('AYNI');
+                }
+                else {
+                    console.log('FARKLI');
+                    general.sikiminSayaci = 0;
                 }                   
             }
         );
@@ -123,6 +131,12 @@
         alertAlreadyAdd : 0
     }
 
+    var latestValues = {
+        latestTemp : [],
+        latestRes : [],
+        araDeger : []
+    }
+
  
     // GET ALL DATA FROM EXPRESSJS AND ASSING THEM TO THE TAGDATAS VARIABLES
     <%for(var i=0;i < tagId.length; i++){ %>
@@ -134,9 +148,11 @@
 	<% } %>
     
     console.log('sikmisler' + tagDatas.sikerler);
+
     <%for(var i=0;i < tagRegistered.length; i++){ %>
         tagDatas.registered.push('<%= tagRegistered[i] %>');
         tagDatas.registeredDescription.push('<%= descriptionOfRegistered[i] %>');
+        latestValues.latestTemp.push(<%= latestTemp[i] %>);
 	<% } %>
 
     // SHOW HOW MANY CLIENTS ACTIVE
@@ -149,18 +165,7 @@
     // SHOW HOW MANY CLIENTS REGISTERED
     document.getElementById("numberOfRegisteredSensor").innerHTML = tagDatas.registered.length;
 
-    // DYNAMIC SENSOR LIST, DEFINITION         
-    var select = document.getElementById("dynamicSensorList");
-    select.options[0] = new Option('Select a Sensor', 'sensor0');
-    // GET DATAS FROM REGISTERED TABLE AND CREATE DYNAMIC LIST
-    for(var i=0; i<= tagDatas.registered.length -1 ; i++) {
-        select.options[select.options.length] = new Option(tagDatas.registered[i], 'sensor'+ (parseInt(i)+1) );
-    }
-
-
-
-    tagDatas.sensorLength = select.options.length;
-
+    
 
     // FOR STATUS CELL ON THE DYNAMIC TABLE
   	// IF REGISTERED TABLE AND CHIPID TABLE EQUAL THAT MEANS ALL STATUS HAS TO BE 'SUBSCRIBED'
@@ -195,6 +200,7 @@
 		// CREATE THE COLUMNS FUNCTION
         function createColumn (name){
             var TH = document.createElement("th");
+            TH.align = "center";
             var th = document.createTextNode(name);
             TH.appendChild(th);
 		    bodyDatas.row.appendChild(TH)
@@ -206,7 +212,7 @@
         createColumn('Description');
         createColumn('Temperature');
         createColumn('Humidity');
-        createColumn('Select');
+        createColumn('Delete - Unsubscribe');
         createColumn('Status');
 	
         // APPEND THE ROWS TO THE BODY
@@ -216,25 +222,25 @@
   		for(var i=0;i < tagDatas.registered.length ; i++){
     		// CREATE A TABLE ROW ELEMENT
     		bodyDatas.row = document.createElement("tr");
-   			
+   			bodyDatas.row.align = "center";
             // FILL THE ROWS WITH DATAS
 
+            // create the link related to chipID
             var link = document.createElement('a');
             link.textContent = tagDatas.registered[i];
-            //link.href = '/pageofSensor'+(1);
             link.href = "#"
-            link.id = 'sensorPage'+i;
-            document.getElementById('deneme').appendChild(link);
+            link.id = tagDatas.registered[i];
 
             createLink(link);
-			//createElement(tagDatas.registered[i]);
 			createElement(1);
             createElement(tagDatas.registeredDescription[i]);
-            getLatestTemp('?',i);
+            
+            getLatestTemp(latestValues.latestTemp[i],i);
+            createElement('4');
 
-
-            createElement('?');
+            // checkbox function
             checkBoxForDelete(i+1);
+            // checkbox function
             checkBoxForUnsubscribe(i+1);
             createElement(tagDatas.registeredStatus[i]);
 			
@@ -248,8 +254,10 @@
             
       		var cellText = document.createTextNode(xData);
             tagDatas.cellText.push(cellText);
-            tagDatas.cellText[i].nodeValue = tagDatas.sikerler[i];
-
+            //tagDatas.cellText[i].nodeValue = tagDatas.sikerler[i];
+            tagDatas.cellText[i].nodeValue = latestValues.latestTemp[i];
+            //tagDatas.cellText[i].nodeValue = 2;
+            console.log('sdafs ' + latestValues.latestTemp);
       		cell.appendChild(cellText);
       		bodyDatas.row.appendChild(cell);
 		}
@@ -263,7 +271,6 @@
       		bodyDatas.row.appendChild(cell);
 		}
         
-
         // FUNCTION TO CREATE ELEMENTS
   		function createElement(xData){
  			var cell = document.createElement("td");
@@ -273,7 +280,6 @@
       		bodyDatas.row.appendChild(cell);
 		}
         
-
         // CREATE CHECKBOX FOR  DELETING
         function checkBoxForDelete(n){
             var checkbox = document.createElement('input');
@@ -282,6 +288,7 @@
             checkbox.name = "Keslan"+ n;
             checkbox.value = "sikko"+n;
             checkbox.id = "checkedDeneme"+n;
+            checkbox.align = "left";
 
             // ASSING THEM TO THE VARIABLES
             bodyDatas.checked.push(checkbox);
@@ -296,6 +303,7 @@
             checkbox.name = "Suslan"+ n;
             checkbox.value = "sikko"+n;
             checkbox.id = "checkedUnsubcribe"+n;
+            checkbox.align = "center";
 
             // ASSING THEM TO THE VARIABLES
             bodyDatas.checked.push(checkbox);
@@ -312,63 +320,34 @@
 
     }
 
-    ///// ?????
-    general.sayacForUpdate = tagDatas.chipIDid.length;
-    console.log('-1' + general.sayacForUpdate);
-    
-    function update_table(){   
-
-        console.log('-1' + general.latest);
-        console.log('-1' + general.sayacForUpdate);
-
-        if( general.sayacForUpdate != general.latest ){
-            location.reload();
-            console.log('bok');
-            generate_table();
-        }else{
-
-        } 
-        general.sayacForUpdate = general.latest;
-        general.latest = tagDatas.chipIDid.length;
-        
-    }  
-
-
     // check for links if clicked or not
     $('a').click(function(){
-        alert(this.id);
-        post('/configuration/', {sikko: 'Johnny'});
+        //alert(this.id);
+        post('/configuration/', {sikko: this.id});
 
     });
 
     // POST FUNCTION
     function post(path, params, method) {
     method = method || "post"; // Set method to post by default if not specified.
-
-    // The rest of this code assumes you are not using a library.
-    // It can be made less wordy if you use one.
     var form = document.createElement("form");
     form.setAttribute("method", method);
     form.setAttribute("action", path);
-
     for(var key in params) {
         if(params.hasOwnProperty(key)) {
             var hiddenField = document.createElement("input");
             hiddenField.setAttribute("type", "hidden");
             hiddenField.setAttribute("name", key);
             hiddenField.setAttribute("value", params[key]);
-
             form.appendChild(hiddenField);
          }
     }
-
     document.body.appendChild(form);
         form.submit();
     }
 
 
-
-    
+ 
     // Call the main ajax funtion
     general.intervalForMainAjaxCall = setInterval(ajaxCall,1000);
 
@@ -387,14 +366,30 @@
             	console.log('process complete');
         	},
         	success: function(data) {
+
+                var eski = latestValues.latestTemp;
+                var yeni = data.latestTemp;
+
+                latestValues.latestTemp.diff2(data.latestTemp);
+
+                //latesttemp
+                
+                console.log('haydibakalim  ' + data.latestTemp);
+                latestValues.latestTemp = data.latestTemp;
+                
+                //var yeni = data.latestTemp;
+                //var eski = data
+                console.log('haydibakalim  ' + eski);
+
+                
+                //if(latestValues.latestTemp ! = )
+                
+                //latestValues.latestTemp.diff(tagDatas.chipIDnumber);
+                
                 //to reload the page with every change
                 if ( data.deneme == 1 ){
                     location.reload();
                 }
-
-                var bok = data.sikerler;
-        
-
 
                 //alert messages
                 // to show alert message when the user enter client id that already registered 
@@ -420,9 +415,8 @@
                     window.location.href = '/pageofSensor1';
                 }
 
-                
-
-
+    
+                //add
                 if ( data.postTempp != 0 ){
                     
                     for(var i=0; i<tagDatas.registered.length; i++){
@@ -439,7 +433,8 @@
                 }
                 //console.log('son deger ' + tagDatas.cellText[i].nodeValue)
                 console.log('son deger ' + tagDatas.bokbok)
-                
+                //a
+
 
                 // get lenght of the chipID table 
                 tagDatas.chipIDid = data.tagId;
@@ -459,33 +454,7 @@
                     document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDnumber[i] + ' <br />';
                 }
                 
-                // FOR DYNAMIC SELECT 
-                if ( tagDatas.registered.length != tagDatas.sensorLength)
-                {
-                    select.options.length = 0;
-                    select.options[0] = new Option('Select a Sensor', 'sensor0');
-                    
-                    for(var i=0; i<= tagDatas.registered.length -1 ; i++) {
-                        select.options[select.options.length] = new Option(tagDatas.registered[i], 'sensor'+ (parseInt(i)+1) );
-                    }
-                    tagDatas.sensorLength = tagDatas.registered.length;
-
-                }
-
-                general.latest = data.tagId.length;
-
-                //update_table();
-
-                // Dynamic List , get from registered table
-                for ( i=0;i<tagDatas.registered.length;i++ ){
-                    if(select.options[select.selectedIndex].value == 'sensor' + (i+1) )
-                    {
-                        window.location.href = '/pageofSensor' + (i+1)
-                    }
-                }
-                
-
-                
+                // get which one is checked
                 for ( var i=0;i<tagDatas.registered.length;i++ ){   
                     var a = 0;
                     a = i+1;
@@ -517,9 +486,9 @@
                     else if ( general.elemUnSubscribe && general.elemUnSubscribe[general.sikForUnsubcribe].checked == false ){
                             document.getElementById("unsubscribeChipID").value = '';
                     }
-
                 }
 
+                //generate_table();
 
                              
   	    	},
