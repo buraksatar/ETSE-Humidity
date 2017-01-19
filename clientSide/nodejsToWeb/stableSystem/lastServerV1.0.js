@@ -84,6 +84,26 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                                 }
                             }
                         );
+
+                        
+                        var post  = {
+                            temp: 0, 
+                            res: 0, 
+                            adc: 0, 
+                            mux: 0
+                        };
+            
+                    // put post values to table of sensor1 in MYSQL database
+                        connection.query('INSERT INTO s'+ dataFromForm.number + ' SET ?', post , function (err, result) {
+            
+                            if (err) {
+        		                return;
+      		                }
+
+                        });  
+
+
+
                         alertMessages.addedSuccessfully++;
 
                     }
@@ -131,13 +151,13 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
                 // check value cant be zero
 	            for(var i=0;i<rows.length;i++){
                     if ( dataFromForm.number == registeredClients.subscriptionName[i] ){
-                        console.log(dataFromForm.number);
+                        //console.log(dataFromForm.number);
                         checkValue++;
                         checkIndex = i;
                     }
                 }
-                console.log(checkValue);
-                console.log(dataFromForm.number);
+                //console.log(checkValue);
+                //console.log(dataFromForm.number);
                 // if checkValue is not zero, that means the number registered in database
                 if (checkValue != 0){
                     
@@ -182,6 +202,9 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
                             }
                         }
                     );
+
+
+
 
                     alertMessages.deletedSuccessfully++;
                     
@@ -273,10 +296,8 @@ var clickPageFunction = function clickPageFunction()
     // call the webpage with that name
 	app.get('/pageofSensor1', function(req, res) {
 
-        
-
 		// reaching the related table in database, for example sensor1, sensor2, sensor3 ...
-		connection.query('SELECT * FROM s' + registeredClients.subscriptionName[0] + ';', function (error, rows) 
+		connection.query('SELECT * FROM s' + dataFromForm.linkClicked + ';', function (error, rows) 
 		{ 
 			// gets data from database and assing them related array
 			for(var i=0;i<rows.length;i++){
@@ -299,11 +320,11 @@ var clickPageFunction = function clickPageFunction()
             
             //res.json({ user: 'tobi' });
 			// make the variables zero to prevent overriding
-			//pageOfSensor.temp =[]; 
-			//pageOfSensor.res = [];
-			//pageOfSensor.adc=[];
-			//pageOfSensor.mux=[];
-			//pageOfSensor.id=[];
+			pageOfSensor.temp =[]; 
+			pageOfSensor.res = [];
+			pageOfSensor.adc=[];
+			pageOfSensor.mux=[];
+			pageOfSensor.id=[];
 		});			
 
 	});
@@ -312,8 +333,6 @@ var clickPageFunction = function clickPageFunction()
 }
 // when clickPage event emitted, clickPageFunction starts
 eventEmitter.on('clickPage', clickPageFunction);
-
-
 
 
 
@@ -328,6 +347,7 @@ var connection = mysql.createConnection({
 
 connection.connect();
 
+// to give a link to SensorPage, all of them have been used
 var pageOfSensor = {
     id : [],
 	res : [],
@@ -335,7 +355,7 @@ var pageOfSensor = {
     adc : [],
     mux : []
 }
-
+// to give alert message, all of them have been used
 var alertMessages = {
     alreadyRegisteredClient : 0,
     addedSuccessfully : 0,
@@ -345,6 +365,7 @@ var alertMessages = {
     wrongClientID7Digit : 0
 }
 
+// deneme1 for getting latest data, directly from mqtt
 var postDatass = {
 	res : [],
     temp : [],
@@ -352,6 +373,7 @@ var postDatass = {
     bokbok : []
 };
 
+//to store only subscribed Clients
 var tagDatas = {
     chipIDname : [],
 	subscriptionName : [],
@@ -362,20 +384,27 @@ var tagDatas = {
     routePage : 0
 };
 
+//for call main function
 var sensorAll = [];
 
+// to get data from http post request
 var dataFromForm = {
 	number : [],
     description : [],
     unsubscribe : [],
     linkClicked : []
 };
-
+//to store registeredClients
 var registeredClients = {
 	subscriptionName : [],
     description : [],
     ID : []
 };
+
+var latestValue = {
+    temp : [],
+    res : []
+}
 
 
 // set the view engine to ejs on ExpressJS
@@ -398,10 +427,6 @@ app.use('/public', express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }))
 // parse application/json 
 app.use(bodyParser.json())
-
-
-
-
 
 
 function getDatafromchipIDtable(){
@@ -429,19 +454,36 @@ function getDatafromRegisteredClientsTable(){
     {
         registeredClients.subscriptionName = [];
         registeredClients.description = [];
+        latestValue.temp = [];
 
         for(var i=0;i<rows.length;i++){
             registeredClients.subscriptionName.push(rows[i].clientName);
             registeredClients.description.push(rows[i].description);
     	}
+        console.log('sayi ' +        registeredClients.subscriptionName.length);
+        //latestValue.temp = '';
+        for(var k=0; k<registeredClients.subscriptionName.length; k++){
+            
+            connection.query('SELECT * FROM s'+ registeredClients.subscriptionName[k] +';', function (error, rows) 
+            {
+                //console.log('latest temp hepsinin ' +        rows[rows.length-1].temp);
+                //latestValue.temp.push( rows[rows.length-1].temp );
+                //if(rows[rows.length-1].temp != ''){
+                    latestValue.temp.push( rows[rows.length-1].temp )
 
+                    console.log('latest temp hepsinin ' +        latestValue.temp);
+                //}
+
+                
+            });
+        }
 
     });
 }
 
 
 app.get('/configuration', function(req, res) {
-
+    //console.log(postDatass.temp);
     res.render('pages' + '/configuration',{
 	//send the data with those names as an array
         tagNumber : tagDatas.subscriptionName,
@@ -450,7 +492,8 @@ app.get('/configuration', function(req, res) {
         tagDescription : tagDatas.chipIDdescription,
         tagRegistered : registeredClients.subscriptionName,
         descriptionOfRegistered : registeredClients.description,
-        sikerlerTemp : postDatass.bokbok
+        sikerlerTemp : postDatass.bokbok,
+        latestTemp : latestValue.temp
  	});
 });
 
@@ -476,7 +519,6 @@ app.post('/configuration', function(req, res) {
     tagDatas.deneme = 1;
 
 });
-
 
 subscribeAll();
 
@@ -554,7 +596,9 @@ app.post('/getBuff', function(req, res) {
         alertSuccessUnsubscribed : alertMessages.unsubscribedSuccessfully,
         alertWrongClientIDSyntax : alertMessages.wrongClientIDSyntax,
         alertWrongClientID7Digit : alertMessages.wrongClientID7Digit,
-        routePage : tagDatas.routePage
+        routePage : tagDatas.routePage,
+        latestTemp : latestValue.temp,
+        latestRes : latestValue.res
 	});
     
   
@@ -569,34 +613,6 @@ app.post('/getBuff', function(req, res) {
     postDatass.chipID = 0;
     tagDatas.routePage = 0;
 });
-
-function readDatafromSensor1(chipIDofSensor){
-
-        connection.query('SELECT * FROM s' + chipIDofSensor, 
-            function (error, rows) 
-            {
-                if (error) throw error;
-                
-                postDatass.temp = rows[rows.length-1].temp;
-                console.log('en SON '+ postDatass.temp);
-                postDatass.chipID = chipIDofSensor;
-
-
-                for(var i=0; i<registeredClients.subscriptionName.length; i++){
-                    if(postDatass.chipID == registeredClients.subscriptionName[i]){
-                        postDatass.bokbok[i] = postDatass.temp;
-                    }
-                    else{
-                    
-                    }    
-                }
-              
-            }
-        );      
-}
-
-
-
 
 
 
@@ -637,17 +653,10 @@ function mqtt2sql(chipIDofSensor) {
       		    }
       		    //console.error(result);
 
-            });
-            readDatafromSensor1(chipIDofSensor);
-            //readDatafromSensor2(,chipIDofSensor);       
+            });     
         }              
     })
 }
-
-
-
-
-
 
 
 
