@@ -227,7 +227,7 @@ eventEmitter.on('deleteClientFromDatabase', deleteClientFromDatabaseFunction);
 var unsubsribeClientFunction = function unsubsribeClientFunction()
 {
     // if form is not blank
-    if(dataFromForm.unsubscribe != ''){
+    if(dataFromForm.unsubscribeNumber != ''){
          connection.query('SELECT * FROM registeredClients;', 
             function (error, rows) 
             {
@@ -236,37 +236,70 @@ var unsubsribeClientFunction = function unsubsribeClientFunction()
 
                 var checkValue = 0;
                 var checkIndex = 0;
+                var checkSubscribe = 0;
+
                 // if the number we want to delete is in database
                 // check value cant be zero
 	            for(var i=0;i<rows.length;i++){
-                    if ( dataFromForm.unsubscribe == registeredClients.subscriptionName[i] ){
+                    if ( dataFromForm.unsubscribeNumber == registeredClients.subscriptionName[i] ){
                         checkValue++;
                         checkIndex = i;
                     }
                 }
                 // if checkValue is not zero, that means the number registered in database
-                console.log(checkValue);
-                console.log(dataFromForm.unsubscribe);
+                
                 if (checkValue != 0){
                     
                     getDatafromchipIDtable();
                     getDatafromRegisteredClientsTable();
                 
                     
-                    // if the client isnt registred yet,
-                    // save the new client to the chipID table in mysqldatabase 
-                    // delete from chipId table
-                    connection.query('DELETE FROM chipID WHERE clientName  = "'+ dataFromForm.unsubscribe +'"' ,
-                        function (err, result) {
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                console.log("Deleted succesfully from chipID table");
+                
+
+                        for(var i=0;i<tagDatas.subscriptionName.length;i++){
+                            if ( dataFromForm.unsubscribeNumber == tagDatas.subscriptionName[i] ){
+                                checkSubscribe++;
                             }
                         }
-                    );
-                    alertMessages.unsubscribedSuccessfully++;
+                        
+                        if (checkSubscribe != 0){
+                            // if the client isnt registred yet,
+                            // save the new client to the chipID table in mysqldatabase 
+                            // delete from chipId table
+                            connection.query('DELETE FROM chipID WHERE clientName  = "'+ dataFromForm.unsubscribeNumber +'"' ,
+                                function (err, result) {
+                                    if(err) {
+                                        console.log(err);
+                                    } 
+                                    else {
+                                        console.log("Deleted succesfully from chipID table");
+                                    }
+                                }
+                            );
+                            alertMessages.unsubscribedSuccessfully++;
+                        }
+                        else {
+                            
+                            
+                            connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.unsubscribeNumber, 
+                                                                    description: dataFromForm.unsubscribeDescription} , 
+                                function (err, result) {
+                                    // error handling
+                                    if (err) {
+                                        console.error(err);
+                                    }
+                                    else{
+                                        console.error(result);
+                                        }
+                                }
+                            );
+                            alertMessages.subscribedSuccessfully++;
+
+                            console.log(' subscribe oldu ');
+                            
+                        }
+
+                            
                     
                 }
                 else{
@@ -335,7 +368,6 @@ var clickPageFunction = function clickPageFunction()
 eventEmitter.on('clickPage', clickPageFunction);
 
 
-
 //database settingsd
 var connection = mysql.createConnection({
   	host: 'localhost',
@@ -361,17 +393,11 @@ var alertMessages = {
     addedSuccessfully : 0,
     deletedSuccessfully : 0,
     unsubscribedSuccessfully : 0,
+    subscribedSuccessfully : 0,
     wrongClientIDSyntax : 0,
     wrongClientID7Digit : 0
 }
 
-// deneme1 for getting latest data, directly from mqtt
-var postDatass = {
-	res : [],
-    temp : [],
-    chipID : [],
-    bokbok : []
-};
 
 //to store only subscribed Clients
 var tagDatas = {
@@ -392,6 +418,7 @@ var dataFromForm = {
 	number : [],
     description : [],
     unsubscribe : [],
+    unsubscribeDescription : [],
     linkClicked : []
 };
 //to store registeredClients
@@ -455,25 +482,20 @@ function getDatafromRegisteredClientsTable(){
         registeredClients.subscriptionName = [];
         registeredClients.description = [];
         latestValue.temp = [];
+        latestValue.res = [];
 
         for(var i=0;i<rows.length;i++){
             registeredClients.subscriptionName.push(rows[i].clientName);
             registeredClients.description.push(rows[i].description);
     	}
-        console.log('sayi ' +        registeredClients.subscriptionName.length);
-        //latestValue.temp = '';
+        
         for(var k=0; k<registeredClients.subscriptionName.length; k++){
             
             connection.query('SELECT * FROM s'+ registeredClients.subscriptionName[k] +';', function (error, rows) 
             {
-                //console.log('latest temp hepsinin ' +        rows[rows.length-1].temp);
-                //latestValue.temp.push( rows[rows.length-1].temp );
-                //if(rows[rows.length-1].temp != ''){
-                    latestValue.temp.push( rows[rows.length-1].temp )
-
-                    console.log('latest temp hepsinin ' +        latestValue.temp);
-                //}
-
+                
+                    latestValue.temp.push( rows[rows.length-1].temp );
+                    latestValue.res.push( rows[rows.length-1].res )
                 
             });
         }
@@ -483,7 +505,6 @@ function getDatafromRegisteredClientsTable(){
 
 
 app.get('/configuration', function(req, res) {
-    //console.log(postDatass.temp);
     res.render('pages' + '/configuration',{
 	//send the data with those names as an array
         tagNumber : tagDatas.subscriptionName,
@@ -492,8 +513,8 @@ app.get('/configuration', function(req, res) {
         tagDescription : tagDatas.chipIDdescription,
         tagRegistered : registeredClients.subscriptionName,
         descriptionOfRegistered : registeredClients.description,
-        sikerlerTemp : postDatass.bokbok,
-        latestTemp : latestValue.temp
+        latestTemp : latestValue.temp,
+        latestRes : latestValue.res
  	});
 });
 
@@ -508,8 +529,9 @@ app.post('/configuration', function(req, res) {
         dataFromForm.number = req.body.numberForDelete;
         eventEmitter.emit('deleteClientFromDatabase');
     }
-    if ( req.body.numberForUnsubscribe ){
-        dataFromForm.unsubscribe = req.body.numberForUnsubscribe;
+    if ( req.body.numberForUnsubscribe && req.body.descriptionForUnsubscribe ){
+        dataFromForm.unsubscribeNumber = req.body.numberForUnsubscribe;
+        dataFromForm.unsubscribeDescription = req.body.descriptionForUnsubscribe;
         eventEmitter.emit('unsubsribeClient');     
     }
     if ( req.body.sikko ){
@@ -586,14 +608,11 @@ app.post('/getBuff', function(req, res) {
         tagRegistered : registeredClients.subscriptionName,
         descriptionOfRegistered : registeredClients.description,
         deneme : tagDatas.deneme,
-        postTempp : postDatass.temp,
-        postRess : postDatass.res,
-        subscriptionIDD : postDatass.chipID,
-        sikerlerTemp : postDatass.bokbok,
         alertAlreadyAdd : alertMessages.alreadyRegisteredClient,
         alertSuccessAdded : alertMessages.addedSuccessfully,
         alertSuccessDeleted : alertMessages.deletedSuccessfully,
         alertSuccessUnsubscribed : alertMessages.unsubscribedSuccessfully,
+        alertSuccessSubscribed : alertMessages.subscribedSuccessfully,
         alertWrongClientIDSyntax : alertMessages.wrongClientIDSyntax,
         alertWrongClientID7Digit : alertMessages.wrongClientID7Digit,
         routePage : tagDatas.routePage,
@@ -607,10 +626,9 @@ app.post('/getBuff', function(req, res) {
     alertMessages.addedSuccessfully = 0;
     alertMessages.deletedSuccessfully = 0;
     alertMessages.unsubscribedSuccessfully = 0 ;
+    alertMessages.subscribedSuccessfully = 0;
     alertMessages.wrongClientIDSyntax = 0;
     alertMessages.wrongClientID7Digit = 0;
-    postDatass.temp = 0;
-    postDatass.chipID = 0;
     tagDatas.routePage = 0;
 });
 
