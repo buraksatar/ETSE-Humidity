@@ -44,18 +44,15 @@
        <input id='deleteChipID' type="text" name="numberForDelete" value='' />
        
        <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
+       <input id='unsubscribeDescription' type="text" name="descriptionForUnsubscribe" value='' />
        
        <input type="submit" value='Select The Action' />
 
     </form>
 
 
-  
-
 
 <script>
-
-
 
     // TAKE THE DIFFERENTIATION of WHOLE SENSORS AND ACTIVE SENSORS 
     Array.prototype.diff = function(a) {
@@ -71,19 +68,6 @@
         );
     };
 
-    Array.prototype.diff2 = function(a) {
-        return this.filter(
-            function(i) {
-                if ( (a.indexOf(i) < 0) || (general.sikiminSayaci == 0) ){
-                    console.log('AYNI');
-                }
-                else {
-                    console.log('FARKLI');
-                    general.sikiminSayaci = 0;
-                }                   
-            }
-        );
-    };
     
     // GENERAL VARIABLES FOR GENERAL ASPECTS
     var general = {
@@ -121,20 +105,15 @@
         registered : [],
         registeredStatus : [],
         registeredDescription : [],
-        chipID : [],
-        cellText : [],
-        bokbok : [],
-        sikerler : []
+        chipID : []
     };
 
-    var alertMessages = {
-        alertAlreadyAdd : 0
-    }
-
+    // to get latest values from sensors
     var latestValues = {
         latestTemp : [],
         latestRes : [],
-        araDeger : []
+        cellTextForLatestTemp : [],
+        cellTextForLatestRes : []
     }
 
  
@@ -144,15 +123,14 @@
         tagDatas.chipIDunixTime.push(<%= tagUnixTime[i] %>);
         tagDatas.chipIDnumber.push('<%= tagNumber[i] %>');
         tagDatas.chipIDdescription.push('<%= tagDescription[i] %>');
-        tagDatas.sikerler.push('<%= sikerlerTemp[i] %>');
 	<% } %>
     
-    console.log('sikmisler' + tagDatas.sikerler);
 
     <%for(var i=0;i < tagRegistered.length; i++){ %>
         tagDatas.registered.push('<%= tagRegistered[i] %>');
         tagDatas.registeredDescription.push('<%= descriptionOfRegistered[i] %>');
         latestValues.latestTemp.push(<%= latestTemp[i] %>);
+        latestValues.latestRes.push(<%= latestRes[i] %>);
 	<% } %>
 
     // SHOW HOW MANY CLIENTS ACTIVE
@@ -236,7 +214,7 @@
             createElement(tagDatas.registeredDescription[i]);
             
             getLatestTemp(latestValues.latestTemp[i],i);
-            createElement('4');
+            getLatestRes(latestValues.latestRes[i],i);
 
             // checkbox function
             checkBoxForDelete(i+1);
@@ -248,16 +226,26 @@
     		bodyDatas.tblBody.appendChild(bodyDatas.row);
   		}
         
+        function getLatestRes(xData,i){
+ 			var cell = document.createElement("td");
+            
+      		var cellText = document.createTextNode(xData);
+            latestValues.cellTextForLatestRes.push(cellText);
+            latestValues.cellTextForLatestRes[i].nodeValue = xData;
+      		
+            cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+
+
         // Function to get latest Temp 
   		function getLatestTemp(xData,i){
  			var cell = document.createElement("td");
             
       		var cellText = document.createTextNode(xData);
-            tagDatas.cellText.push(cellText);
-            //tagDatas.cellText[i].nodeValue = tagDatas.sikerler[i];
-            tagDatas.cellText[i].nodeValue = latestValues.latestTemp[i];
-            //tagDatas.cellText[i].nodeValue = 2;
-            console.log('sdafs ' + latestValues.latestTemp);
+            latestValues.cellTextForLatestTemp.push(cellText);
+            latestValues.cellTextForLatestTemp[i].nodeValue = xData;
+            
       		cell.appendChild(cellText);
       		bodyDatas.row.appendChild(cell);
 		}
@@ -320,6 +308,7 @@
 
     }
 
+    
     // check for links if clicked or not
     $('a').click(function(){
         //alert(this.id);
@@ -327,7 +316,8 @@
 
     });
 
-    // POST FUNCTION
+    // POST FUNCTION - a common script for sending post without usign html form 
+    //script- begin
     function post(path, params, method) {
     method = method || "post"; // Set method to post by default if not specified.
     var form = document.createElement("form");
@@ -345,7 +335,18 @@
     document.body.appendChild(form);
         form.submit();
     }
+    //script- end
 
+    // to get latest data from sensor nodes
+    setInterval(function(){
+
+        for(var i=0;i < tagDatas.registered.length ; i++){
+            // those values represents Temperature and Humidty cells in the table
+            latestValues.cellTextForLatestTemp[i].nodeValue = latestValues.latestTemp[i];
+            latestValues.cellTextForLatestRes[i].nodeValue = latestValues.latestRes[i];
+        }
+
+    }, 2000);
 
  
     // Call the main ajax funtion
@@ -367,25 +368,12 @@
         	},
         	success: function(data) {
 
-                var eski = latestValues.latestTemp;
-                var yeni = data.latestTemp;
 
-                latestValues.latestTemp.diff2(data.latestTemp);
-
-                //latesttemp
-                
-                console.log('haydibakalim  ' + data.latestTemp);
+                console.log('haydibakalim  ' + latestValues.cellTextForLatestRes);
                 latestValues.latestTemp = data.latestTemp;
+                latestValues.latestRes = data.latestRes;
                 
-                //var yeni = data.latestTemp;
-                //var eski = data
-                console.log('haydibakalim  ' + eski);
-
-                
-                //if(latestValues.latestTemp ! = )
-                
-                //latestValues.latestTemp.diff(tagDatas.chipIDnumber);
-                
+                                
                 //to reload the page with every change
                 if ( data.deneme == 1 ){
                     location.reload();
@@ -414,26 +402,10 @@
                  if( data.routePage != 0 ){
                     window.location.href = '/pageofSensor1';
                 }
-
-    
-                //add
-                if ( data.postTempp != 0 ){
-                    
-                    for(var i=0; i<tagDatas.registered.length; i++){
-                        if(data.subscriptionIDD == tagDatas.registered[i]){
-                            tagDatas.cellText[i].nodeValue = data.postTempp;
-                        }
-                        else{
-
-                        }
-
-                        tagDatas.bokbok.push(tagDatas.cellText[i].nodeValue);
-                    }
-                    
+                if( data.alertSuccessSubscribed == 1 ){
+                    alert("Subscribed Successfully!");
                 }
-                //console.log('son deger ' + tagDatas.cellText[i].nodeValue)
-                console.log('son deger ' + tagDatas.bokbok)
-                //a
+                
 
 
                 // get lenght of the chipID table 
@@ -480,16 +452,16 @@
 
                     if ( general.elemUnSubscribe && general.elemUnSubscribe[i].checked == true ){
                         document.getElementById("unsubscribeChipID").value = '';
+                        document.getElementById("unsubscribeDescription").value = '';
                         document.getElementById("unsubscribeChipID").value = tagDatas.registered[i]; // Get text field
+                        document.getElementById("unsubscribeDescription").value = tagDatas.registeredDescription[i]; // Get text field
                         general.sikForUnsubcribe = i;
                     }
                     else if ( general.elemUnSubscribe && general.elemUnSubscribe[general.sikForUnsubcribe].checked == false ){
                             document.getElementById("unsubscribeChipID").value = '';
+                            document.getElementById("unsubscribeDescription").value = '';
                     }
                 }
-
-                //generate_table();
-
                              
   	    	},
         	error: function() {
