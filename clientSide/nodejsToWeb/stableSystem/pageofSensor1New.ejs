@@ -69,7 +69,8 @@
 		adcData : [],
 		resData : [],
 		muxData : [],
-		humidtyCell : []
+		humidtyCell : [],
+		strUser : []
 	}
 
 
@@ -126,7 +127,7 @@
 		bodyDatas.tblBody.appendChild(bodyDatas.row)
 		
 		var e = document.getElementById("materialList2");
-		strUser = e.options[e.selectedIndex].value;	
+		tagDatas.strUser = e.options[e.selectedIndex].value;	
 		
 		// function for creating Elements
   		function createElement(xData){
@@ -150,39 +151,39 @@
 				for (var j = 5; j < 6; j++) {
       				var cell = document.createElement("td");
 				
-					if ( strUser == "Material1" ){
+					if ( tagDatas.strUser == "Material1" ){
 						var preCellText = getCalculate(15.84,-0.2576,8.923,tagDatas.resData[i]);
 					}
-					else if ( strUser == "Material2" ){
+					else if ( tagDatas.strUser == "Material2" ){
 						var preCellText = getCalculate(13.2,-0.2515,10.77,tagDatas.resData[i]);
 					}
-					else if ( strUser == "Material3" ){
+					else if ( tagDatas.strUser == "Material3" ){
 						var preCellText = getCalculate(17.06,-0.2832,10.64,tagDatas.resData[i]);
 					}
-					else if ( strUser == "Material4" ){
+					else if ( tagDatas.strUser == "Material4" ){
 						var preCellText = getCalculate(11.57,-0.2447,9.538,tagDatas.resData[i]);
 					}
-					else if ( strUser == "Material5" ){
+					else if ( tagDatas.strUser == "Material5" ){
 						var preCellText = getCalculate(13.07,-0.2664,7.812,tagDatas.resData[i]);
 					}
-					else if ( strUser == "Material6" ){
+					else if ( tagDatas.strUser == "Material6" ){
 						var preCellText = getCalculate(11.34,-0.2485,7.965,tagDatas.resData[i]);
 					}
-					else if ( strUser == "Material7" ){
+					else if ( tagDatas.strUser == "Material7" ){
 						var preCellText = getCalculate(10.03,-0.3146,12.35,tagDatas.resData[i]);
 					}
-					else if ( strUser == "Material8" ){
+					else if ( tagDatas.strUser == "Material8" ){
 						var preCellText = getCalculate(14.62,-0.2774,11.5,tagDatas.resData[i]);
 					}
-					else if ( strUser == "Material9" ){
+					else if ( tagDatas.strUser == "Material9" ){
 						var preCellText = getCalculate(13.69,-0.2404,8.352,tagDatas.resData[i]);
 					}
 
 					cellText = document.createTextNode(preCellText.toString());
-        			material1Datas.push(preCellText);
+        			//material1Datas.push(preCellText);
 					//material1Datas[i].nodeValue = 9;
 					tagDatas.humidtyCell.push(cellText);
-					//tagDatas.humidtyCell[i].nodeValue = material1Datas[i];
+					tagDatas.humidtyCell[i].nodeValue = preCellText;
 
      				cell.appendChild(cellText);
       				bodyDatas.row.appendChild(cell);
@@ -215,7 +216,7 @@
 
 
 var interval2 = null;
-interval2 = setInterval(ajaxCall,2000);
+interval2 = setInterval(ajaxCall,1000);
 var latestTemp = null;
 
 function ajaxCall() {
@@ -235,60 +236,62 @@ function ajaxCall() {
         	success: function(data) {
 
 					var e = document.getElementById("materialList2");
-					strUser = e.options[e.selectedIndex].value;
+					tagDatas.strUser = e.options[e.selectedIndex].value;
 			
 					//console.log('dsada '+data.latestRes);
-					console.log('dsada '+strUser);
+					console.log('dsada '+tagDatas.strUser);
 
 					var dynamicTemp = 2;
 					var dynamicRes = 2;
 					var dynamicAdc = 2;
 					var dynamicMux = 2;
 					//material1Datas[2].nodeValue = 4;
-					if ( strUser == "Material1" ){
-						dynamicHumidty = getCalculate(15.84,-0.2576,8.923,dynamicRes);		
+					if ( tagDatas.strUser == "Material1" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(15.84,-0.2576,8.923,tagDatas.resData[i]);		
+						}
 					}
-					else if ( strUser == "Material2" ){
-						dynamicHumidty = getCalculate(13.2,-0.2515,10.77,dynamicRes);
-						location.reload();
+					else if ( tagDatas.strUser == "Material2" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(13.2,-0.2515,10.77,tagDatas.resData[i]);		
+						}
 					}
-					else if ( strUser == "Material3" ){
-						dynamicHumidty = getCalculate(17.06,-0.2832,10.64,dynamicRes);
+					else if ( tagDatas.strUser == "Material3" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(17.06,-0.2832,10.64,tagDatas.resData[i]);		
+						}
 					}
-					else if ( strUser == "Material4" ){
-						dynamicHumidty = getCalculate(11.57,-0.2447,9.538,dynamicRes);
+					else if ( tagDatas.strUser == "Material4" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(11.57,-0.2447,9.538,tagDatas.resData[i]);		
+						}
 					}
-					else if ( strUser == "Material5" ){
-						dynamicHumidty = getCalculate(13.07,-0.2664,7.812,dynamicRes);
+					else if ( tagDatas.strUser == "Material5" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(13.07,-0.2664,7.812,tagDatas.resData[i]);		
+						}
 					}
-					else if ( strUser == "Material6" ){
-						dynamicHumidty = getCalculate(11.34,-0.2485,7.965,dynamicRes);
-						alert('fucks');
+					else if ( tagDatas.strUser == "Material6" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(11.34,-0.2485,7.965,tagDatas.resData[i]);		
+						}
 					}
-					else if ( strUser == "Material7" ){
-						dynamicHumidty = getCalculate(10.03,-0.3146,12.35,dynamicRes);
+					else if ( tagDatas.strUser == "Material7" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(10.03,-0.3146,12.35,tagDatas.resData[i]);		
+						}
 					}
-					else if ( strUser == "Material8" ){
-						dynamicHumidty = getCalculate(14.62,-0.2774,11.5,dynamicRes);
+					else if ( tagDatas.strUser == "Material8" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(14.62,-0.2774,11.5,tagDatas.resData[i]);		
+						}
 					}
-					else if ( strUser == "Material9" ){
-						dynamicHumidty = getCalculate(13.69,-0.2404,8.352,dynamicRes);
+					else if ( tagDatas.strUser == "Material9" ){
+						for (var i=0; i< tagDatas.idData.length; i++){
+							tagDatas.humidtyCell[i].nodeValue = getCalculate(13.69,-0.2404,8.352,tagDatas.resData[i]);		
+						}
 					}
-					
-					
-					material1Datas.push(dynamicHumidty);
-					tagDatas.tempData.push(dynamicTemp);
-					tagDatas.resData.push(dynamicRes);
-					tagDatas.adcData.push(dynamicAdc);
-					tagDatas.muxData.push(dynamicMux);
-
-
-					//for(var i=0; i<4; i++){
-					//	tagDatas.humidtyCell[i].nodeValue = material1Datas[i];
-					//}
-
-
-					
+				
 			
   	    	},
         	error: function() {
