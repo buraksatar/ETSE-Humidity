@@ -372,6 +372,7 @@ var clickPageFunction = function clickPageFunction()
 	});
     //window.location.href = '/pageofSensor1';
 
+
 }
 // when clickPage event emitted, clickPageFunction starts
 eventEmitter.on('clickPage', clickPageFunction);
@@ -404,7 +405,8 @@ var alertMessages = {
     unsubscribedSuccessfully : 0,
     subscribedSuccessfully : 0,
     wrongClientIDSyntax : 0,
-    wrongClientID7Digit : 0
+    wrongClientID7Digit : 0,
+    reloadPage : 0
 }
 
 
@@ -504,14 +506,20 @@ function getDatafromRegisteredClientsTable(){
             {
                 
                     latestValue.temp.push( rows[rows.length-1].temp );
-                    latestValue.res.push( rows[rows.length-1].res )
-                
+                    //latestValue.res.push( rows[rows.length-1].res );
+                    latestValue.res.push( getCalculate(15.84,-0.2576,8.923,rows[rows.length-1].res) );
             });
         }
 
     });
 }
 
+
+function getCalculate(a,b,c,x){
+ 		var result1 = a * (Math.pow(x, b)) + c;
+     		var result2 = result1.toPrecision(5);
+     	return result2;
+}
 
 app.get('/configuration', function(req, res) {
     res.render('pages' + '/configuration',{
@@ -636,7 +644,9 @@ app.post('/getBuff', function(req, res) {
         alertWrongClientID7Digit : alertMessages.wrongClientID7Digit,
         routePage : tagDatas.routePage,
         latestTemp : latestValue.temp,
-        latestRes : latestValue.res
+        latestRes : latestValue.res,
+        tiklananPage : dataFromForm.linkClicked,
+        reloadPage : alertMessages.reloadPage
 	});
     
   
@@ -649,6 +659,8 @@ app.post('/getBuff', function(req, res) {
     alertMessages.wrongClientIDSyntax = 0;
     alertMessages.wrongClientID7Digit = 0;
     tagDatas.routePage = 0;
+    alertMessages.reloadPage = 0;
+    //dataFromForm.linkClicked = 0;
 });
 
 
@@ -690,7 +702,13 @@ function mqtt2sql(chipIDofSensor) {
       		    }
       		    //console.error(result);
 
-            });     
+            });
+
+            if(chipIDofSensor == dataFromForm.linkClicked){
+                console.log('sic');
+                alertMessages.reloadPage++;
+            }
+
         }              
     })
 }
