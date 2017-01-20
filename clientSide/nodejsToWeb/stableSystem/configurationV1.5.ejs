@@ -44,6 +44,7 @@
        <input id='deleteChipID' type="text" name="numberForDelete" value='' />
        
        <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
+       <input id='unsubscribeDescription' type="text" name="descriptionForUnsubscribe" value='' />
        
        <input type="submit" value='Select The Action' />
 
@@ -401,6 +402,12 @@
                  if( data.routePage != 0 ){
                     window.location.href = '/pageofSensor1';
                 }
+                if( data.alertSuccessSubscribed == 1 ){
+                    alert("Subscribed Successfully!");
+                }
+
+                console.log('sfasfsa  ' + data.alertSuccessSubscribed);
+                
 
 
                 // get lenght of the chipID table 
@@ -420,7 +427,12 @@
                 for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
                     document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDnumber[i] + ' <br />';
                 }
-                
+
+                // to reset all check value every call
+                document.getElementById("deleteChipID").value = '';
+                document.getElementById("unsubscribeChipID").value = '';
+                document.getElementById("unsubscribeDescription").value = '';
+
                 // get which one is checked
                 for ( var i=0;i<tagDatas.registered.length;i++ ){   
                     var a = 0;
@@ -428,11 +440,11 @@
                     /// FOR DELETE THE CLIENT
                     general.elem.push( document.getElementById('checkedDeneme'+a) );
     
-                    general.elem[i].checked == false;
-
-                   if ( general.elem && general.elem[i].checked == true ){
-                        document.getElementById("deleteChipID").value = '';
-                        document.getElementById("deleteChipID").value = tagDatas.registered[i]; // Get text field
+                    general.elem[i].checked == true;
+                
+                   if ( general.elem && (general.elem[i].checked == true) ){
+                        
+                        document.getElementById("deleteChipID").value += tagDatas.registered[i]+','; // Get text field
                         general.deneme = i;
                    }
                    else if ( general.elem && general.elem[general.deneme].checked == false ){
@@ -446,12 +458,14 @@
                     general.elemUnSubscribe[i].checked == false;
 
                     if ( general.elemUnSubscribe && general.elemUnSubscribe[i].checked == true ){
-                        document.getElementById("unsubscribeChipID").value = '';
-                        document.getElementById("unsubscribeChipID").value = tagDatas.registered[i]; // Get text field
+                        
+                        document.getElementById("unsubscribeChipID").value += tagDatas.registered[i]+','; // Get text field
+                        document.getElementById("unsubscribeDescription").value += tagDatas.registeredDescription[i]+','; // Get text field
                         general.sikForUnsubcribe = i;
                     }
                     else if ( general.elemUnSubscribe && general.elemUnSubscribe[general.sikForUnsubcribe].checked == false ){
                             document.getElementById("unsubscribeChipID").value = '';
+                            document.getElementById("unsubscribeDescription").value = '';
                     }
                 }
                              
