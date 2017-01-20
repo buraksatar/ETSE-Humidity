@@ -91,7 +91,8 @@
         divTable : [],
         tblBody : [],
         row : [],
-        checked : []
+        checkedForDelete : [],
+        checkedForSubscribe : []
     }
     // GENERAL VARIABLES FOR CHIPID and REGISTERED TABLES
     var tagDatas = {
@@ -190,7 +191,8 @@
         createColumn('Description');
         createColumn('Temperature');
         createColumn('Humidity');
-        createColumn('Delete - Unsubscribe');
+        createColumn('Delete');
+        createColumn('Subscribe & Unsubscribe');
         createColumn('Status');
 	
         // APPEND THE ROWS TO THE BODY
@@ -270,6 +272,7 @@
         
         // CREATE CHECKBOX FOR  DELETING
         function checkBoxForDelete(n){
+            var cell = document.createElement("td");
             var checkbox = document.createElement('input');
       		
             checkbox.type = "checkbox";
@@ -279,12 +282,14 @@
             checkbox.align = "left";
 
             // ASSING THEM TO THE VARIABLES
-            bodyDatas.checked.push(checkbox);
-      		bodyDatas.row.appendChild(checkbox);
+            //bodyDatas.checkedForDelete.push(checkbox);
+      		cell.appendChild(checkbox);
+      		bodyDatas.row.appendChild(cell);
 		}
         
         // CREATE CHECKBOX FOR UNSUBSCRIBING
         function checkBoxForUnsubscribe(n){
+            var cell = document.createElement("td");
             var checkbox = document.createElement('input');
       		
             checkbox.type = "checkbox";
@@ -294,8 +299,9 @@
             checkbox.align = "center";
 
             // ASSING THEM TO THE VARIABLES
-            bodyDatas.checked.push(checkbox);
-      		bodyDatas.row.appendChild(checkbox);
+            //bodyDatas.checkedForSubscribe.push(checkbox);
+            cell.appendChild(checkbox);
+      		bodyDatas.row.appendChild(cell);
 		}
 
         // APPENDING   
@@ -387,11 +393,14 @@
                 if( data.alertSuccessAdded == 1 ){
                     alert("Successfully added!");
                 }
-                if( data.alertSuccessDeleted == 1 ){
+                if( data.alertSuccessDeleted != 0 ){
                     alert("Deleted Successfully!");
                 }
-                if( data.alertSuccessUnsubscribed == 1 ){
+                if( data.alertSuccessUnsubscribed != 0 ){
                     alert("Unsubscribed Successfully!");
+                }
+                if( data.alertSuccessSubscribed != 0 ){
+                    alert("Subscribed Successfully!");
                 }
                 if( data.alertWrongClientIDSyntax == 1 ){
                     alert("Wrong ClientID Syntax! It can't has any letters");
@@ -402,9 +411,8 @@
                  if( data.routePage != 0 ){
                     window.location.href = '/pageofSensor1';
                 }
-                if( data.alertSuccessSubscribed == 1 ){
-                    alert("Subscribed Successfully!");
-                }
+
+                console.log('sfasfsa  ' + data.alertSuccessSubscribed);
                 
 
 
@@ -425,7 +433,12 @@
                 for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
                     document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDnumber[i] + ' <br />';
                 }
-                
+
+                // to reset all check value every call
+                document.getElementById("deleteChipID").value = '';
+                document.getElementById("unsubscribeChipID").value = '';
+                document.getElementById("unsubscribeDescription").value = '';
+
                 // get which one is checked
                 for ( var i=0;i<tagDatas.registered.length;i++ ){   
                     var a = 0;
@@ -433,11 +446,11 @@
                     /// FOR DELETE THE CLIENT
                     general.elem.push( document.getElementById('checkedDeneme'+a) );
     
-                    general.elem[i].checked == false;
-
-                   if ( general.elem && general.elem[i].checked == true ){
-                        document.getElementById("deleteChipID").value = '';
-                        document.getElementById("deleteChipID").value = tagDatas.registered[i]; // Get text field
+                    general.elem[i].checked == true;
+                
+                   if ( general.elem && (general.elem[i].checked == true) ){
+                        
+                        document.getElementById("deleteChipID").value += tagDatas.registered[i]+','; // Get text field
                         general.deneme = i;
                    }
                    else if ( general.elem && general.elem[general.deneme].checked == false ){
@@ -451,10 +464,9 @@
                     general.elemUnSubscribe[i].checked == false;
 
                     if ( general.elemUnSubscribe && general.elemUnSubscribe[i].checked == true ){
-                        document.getElementById("unsubscribeChipID").value = '';
-                        document.getElementById("unsubscribeDescription").value = '';
-                        document.getElementById("unsubscribeChipID").value = tagDatas.registered[i]; // Get text field
-                        document.getElementById("unsubscribeDescription").value = tagDatas.registeredDescription[i]; // Get text field
+                        
+                        document.getElementById("unsubscribeChipID").value += tagDatas.registered[i]+','; // Get text field
+                        document.getElementById("unsubscribeDescription").value += tagDatas.registeredDescription[i]+','; // Get text field
                         general.sikForUnsubcribe = i;
                     }
                     else if ( general.elemUnSubscribe && general.elemUnSubscribe[general.sikForUnsubcribe].checked == false ){
