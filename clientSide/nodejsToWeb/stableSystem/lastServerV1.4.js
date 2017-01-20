@@ -137,84 +137,94 @@ eventEmitter.on('addClientCreateDatabase', addClientCreateDatabaseFunction);
 // that event delete the client from database
 var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction()
 {
-    // if form is not blank
-    if(dataFromForm.number != ''){
-         connection.query('SELECT * FROM registeredClients;', 
-            function (error, rows) 
-            {
-                // error handling
-                if (error) throw error;
+    
 
-                var checkValue = 0;
-                var checkIndex = 0;
-                // if the number we want to delete is in database
-                // check value cant be zero
-	            for(var i=0;i<rows.length;i++){
-                    if ( dataFromForm.number == registeredClients.subscriptionName[i] ){
+        
+
+        // if form is not blank
+        if(dataFromForm.number != ''){
+            
+            
+            connection.query('SELECT * FROM registeredClients;', 
+                function (error, rows) 
+                {
+                    for(var k=0; k<dataFromForm.number.length; k++){
+                        // error handling
+                        if (error) throw error;
+                        //var k=0; 
+                        //console.log('sikerler- ' + dataFromForm.number[k]);
+                        
+                        var checkValue = 0;
+                        // if the number we want to delete is in database
+                        // check value cant be zero
+                        for(var i=0;i<rows.length;i++){
+                            //console.log('2- ' + dataFromForm.number[k]);
+
+                            if ( dataFromForm.number[k] == registeredClients.subscriptionName[i] ){
+                                checkValue++;
+                            }
+                        }
+                        //console.log(checkValue);
                         //console.log(dataFromForm.number);
-                        checkValue++;
-                        checkIndex = i;
+                        // if checkValue is not zero, that means the number registered in database
+                        if (checkValue != 0){
+                            
+                            getDatafromchipIDtable();
+                            
+                            // if the client isnt registred yet,
+                            // save the new client to the chipID table in mysqldatabase 
+                            // delete from chipId table
+                            connection.query('DELETE FROM chipID WHERE clientName = "'+ dataFromForm.number[k] +'"' ,
+                                function (err, result) {
+                                    if(err) {
+                                        console.log(err);
+                                    } 
+                                    else {
+                                        //console.log(result);
+                                        console.log("Deleted succesfully from chipID table");
+                                    }
+                                }
+                            );
+
+                            // delete related table from the database 
+                            connection.query('DROP TABLE s'+ dataFromForm.number[k] ,
+                                function(err, result){
+                                // Case there is an error during the creation
+                                    if(err) {
+                                        console.log(err);
+                                    } 
+                                    else {
+                                        //console.log(result);
+                                        console.log("Client's table deleted succesfully");
+                                    }
+                                }
+                            );
+                            // DELETE FROM registeredClients TABLE
+                            connection.query('DELETE FROM registeredClients WHERE clientName = "'+ dataFromForm.number[k] +'"' ,
+                                function (err, result) {
+                                    if(err) {
+                                        console.log(err);
+                                    } 
+                                    else {
+                                        console.log("ALSO UNSUBSCRIBED");
+                                    }
+                                }
+                            );
+
+
+
+
+                            alertMessages.deletedSuccessfully++;
+                            
+                        }
+                        else{
+                                console.log('This ID is not registered');
+                        }
                     }
+
                 }
-                //console.log(checkValue);
-                //console.log(dataFromForm.number);
-                // if checkValue is not zero, that means the number registered in database
-                if (checkValue != 0){
-                    
-                    getDatafromchipIDtable();
-                    
-                    // if the client isnt registred yet,
-                    // save the new client to the chipID table in mysqldatabase 
-                    // delete from chipId table
-                    connection.query('DELETE FROM chipID WHERE clientName = "'+ dataFromForm.number +'"' ,
-                        function (err, result) {
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                //console.log(result);
-                                console.log("Deleted succesfully from chipID table");
-                            }
-                        }
-                    );
-                    //checkIndex++;
-                    // delete related table from the database 
-                    connection.query('DROP TABLE s'+ dataFromForm.number ,
-                        function(err, result){
-                        // Case there is an error during the creation
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                //console.log(result);
-                                console.log("Client's table deleted succesfully");
-                            }
-                        }
-                    );
-                    // DELETE FROM registeredClients TABLE
-                    connection.query('DELETE FROM registeredClients WHERE clientName = "'+ dataFromForm.number +'"' ,
-                        function (err, result) {
-                            if(err) {
-                                console.log(err);
-                            } 
-                            else {
-                                console.log("ALSO UNSUBSCRIBED");
-                            }
-                        }
-                    );
-
-
-
-
-                    alertMessages.deletedSuccessfully++;
-                    
-                }
-                else{
-                        console.log('This ID is not registered');
-                }
-            }
-        );
-    }
+            );
+        }
     
     // subscribe to all clients from starting over
     subscribeAll();
@@ -526,7 +536,19 @@ app.post('/configuration', function(req, res) {
         eventEmitter.emit('addClientCreateDatabase');
     }
     if ( req.body.numberForDelete ){
-        dataFromForm.number = req.body.numberForDelete;
+
+        var newbuff = req.body.numberForDelete.split(",");
+
+        console.log('coklu delete ' + newbuff.length);
+        
+        //for (var i=0; i<newbuff.length-1; i++){
+        dataFromForm.number = newbuff;
+        //eventEmitter.emit('deleteClientFromDatabase');
+        //}
+        //dataFromForm.number = req.body.numberForDelete;
+        console.log('noliya lan0 ' + dataFromForm.number[0]);
+        console.log('noliya lan1 ' + dataFromForm.number[1]);
+        
         eventEmitter.emit('deleteClientFromDatabase');
     }
     if ( req.body.numberForUnsubscribe && req.body.descriptionForUnsubscribe ){
