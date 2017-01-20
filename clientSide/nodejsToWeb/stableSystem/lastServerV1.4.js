@@ -139,8 +139,6 @@ var deleteClientFromDatabaseFunction = function deleteClientFromDatabaseFunction
 {
     
 
-        
-
         // if form is not blank
         if(dataFromForm.number != ''){
             
@@ -241,79 +239,80 @@ var unsubsribeClientFunction = function unsubsribeClientFunction()
          connection.query('SELECT * FROM registeredClients;', 
             function (error, rows) 
             {
-                // error handling
-                if (error) throw error;
+                for(var k=0; k<dataFromForm.unsubscribeNumber.length; k++){
+                    // error handling
+                    if (error) throw error;
 
-                var checkValue = 0;
-                var checkIndex = 0;
-                var checkSubscribe = 0;
+                    var checkValue = 0;
+                    var checkIndex = 0;
+                    var checkSubscribe = 0;
 
-                // if the number we want to delete is in database
-                // check value cant be zero
-	            for(var i=0;i<rows.length;i++){
-                    if ( dataFromForm.unsubscribeNumber == registeredClients.subscriptionName[i] ){
-                        checkValue++;
-                        checkIndex = i;
+                    // if the number we want to delete is in database
+                    // check value cant be zero
+                    for(var i=0;i<rows.length;i++){
+                        if ( dataFromForm.unsubscribeNumber[k] == registeredClients.subscriptionName[i] ){
+                            checkValue++;
+                            checkIndex = i;
+                        }
                     }
-                }
-                // if checkValue is not zero, that means the number registered in database
-                
-                if (checkValue != 0){
+                    // if checkValue is not zero, that means the number registered in database
                     
-                    getDatafromchipIDtable();
-                    getDatafromRegisteredClientsTable();
-                
-                    
-                
-
-                        for(var i=0;i<tagDatas.subscriptionName.length;i++){
-                            if ( dataFromForm.unsubscribeNumber == tagDatas.subscriptionName[i] ){
-                                checkSubscribe++;
-                            }
-                        }
+                    if (checkValue != 0){
                         
-                        if (checkSubscribe != 0){
-                            // if the client isnt registred yet,
-                            // save the new client to the chipID table in mysqldatabase 
-                            // delete from chipId table
-                            connection.query('DELETE FROM chipID WHERE clientName  = "'+ dataFromForm.unsubscribeNumber +'"' ,
-                                function (err, result) {
-                                    if(err) {
-                                        console.log(err);
-                                    } 
-                                    else {
-                                        console.log("Deleted succesfully from chipID table");
-                                    }
-                                }
-                            );
-                            alertMessages.unsubscribedSuccessfully++;
-                        }
-                        else {
-                            
-                            
-                            connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.unsubscribeNumber, 
-                                                                    description: dataFromForm.unsubscribeDescription} , 
-                                function (err, result) {
-                                    // error handling
-                                    if (err) {
-                                        console.error(err);
-                                    }
-                                    else{
-                                        console.error(result);
-                                        }
-                                }
-                            );
-                            alertMessages.subscribedSuccessfully++;
-
-                            console.log(' subscribe oldu ');
-                            
-                        }
-
-                            
+                        getDatafromchipIDtable();
+                        getDatafromRegisteredClientsTable();
                     
-                }
-                else{
-                        console.log('Wrong client ID');
+                        
+                    
+
+                            for(var i=0;i<tagDatas.subscriptionName.length;i++){
+                                if ( dataFromForm.unsubscribeNumber[k] == tagDatas.subscriptionName[i] ){
+                                    checkSubscribe++;
+                                }
+                            }
+                            
+                            if (checkSubscribe != 0){
+                                // if the client isnt registred yet,
+                                // save the new client to the chipID table in mysqldatabase 
+                                // delete from chipId table
+                                connection.query('DELETE FROM chipID WHERE clientName  = "'+ dataFromForm.unsubscribeNumber[k] +'"' ,
+                                    function (err, result) {
+                                        if(err) {
+                                            console.log(err);
+                                        } 
+                                        else {
+                                            console.log("Deleted succesfully from chipID table");
+                                        }
+                                    }
+                                );
+                                alertMessages.unsubscribedSuccessfully++;
+                            }
+                            else {
+                                
+                                
+                                connection.query('INSERT INTO chipID SET ?', {clientName: dataFromForm.unsubscribeNumber[k], 
+                                                                        description: dataFromForm.unsubscribeDescription[k]} , 
+                                    function (err, result) {
+                                        // error handling
+                                        if (err) {
+                                            console.error(err);
+                                        }
+                                        else{
+                                            console.error(result);
+                                            }
+                                    }
+                                );
+                                alertMessages.subscribedSuccessfully++;
+
+                                console.log(' subscribe oldu ');
+                                
+                            }
+                        
+                                                 
+                    }
+                    else{
+                            console.log('Wrong client ID');
+                    }
                 }
             }
         );
@@ -505,14 +504,20 @@ function getDatafromRegisteredClientsTable(){
             {
                 
                     latestValue.temp.push( rows[rows.length-1].temp );
-                    latestValue.res.push( rows[rows.length-1].res )
-                
+                    //latestValue.res.push( rows[rows.length-1].res );
+                    latestValue.res.push( getCalculate(15.84,-0.2576,8.923,rows[rows.length-1].res) );
             });
         }
 
     });
 }
 
+
+function getCalculate(a,b,c,x){
+ 		var result1 = a * (Math.pow(x, b)) + c;
+     		var result2 = result1.toPrecision(5);
+     	return result2;
+}
 
 app.get('/configuration', function(req, res) {
     res.render('pages' + '/configuration',{
@@ -537,23 +542,21 @@ app.post('/configuration', function(req, res) {
     }
     if ( req.body.numberForDelete ){
 
-        var newbuff = req.body.numberForDelete.split(",");
+        var buffForDeleteNumber = req.body.numberForDelete.split(",");
 
-        console.log('coklu delete ' + newbuff.length);
-        
-        //for (var i=0; i<newbuff.length-1; i++){
-        dataFromForm.number = newbuff;
-        //eventEmitter.emit('deleteClientFromDatabase');
-        //}
-        //dataFromForm.number = req.body.numberForDelete;
-        console.log('noliya lan0 ' + dataFromForm.number[0]);
-        console.log('noliya lan1 ' + dataFromForm.number[1]);
-        
+        dataFromForm.number = buffForDeleteNumber;     
         eventEmitter.emit('deleteClientFromDatabase');
     }
     if ( req.body.numberForUnsubscribe && req.body.descriptionForUnsubscribe ){
-        dataFromForm.unsubscribeNumber = req.body.numberForUnsubscribe;
-        dataFromForm.unsubscribeDescription = req.body.descriptionForUnsubscribe;
+        var buffForUnsubscribeNumber = req.body.numberForUnsubscribe.split(",");
+        var buffForUnsubscribeDescription = req.body.descriptionForUnsubscribe.split(",");
+
+        dataFromForm.unsubscribeNumber = buffForUnsubscribeNumber;
+        dataFromForm.unsubscribeDescription = buffForUnsubscribeDescription;
+
+        console.log(dataFromForm.unsubscribeNumber);
+        console.log(dataFromForm.unsubscribeDescription);
+
         eventEmitter.emit('unsubsribeClient');     
     }
     if ( req.body.sikko ){
