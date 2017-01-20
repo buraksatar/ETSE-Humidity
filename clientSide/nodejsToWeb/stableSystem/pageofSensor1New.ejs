@@ -235,16 +235,18 @@ function ajaxCall() {
         	},
         	success: function(data) {
 
+                 console.log('dubakalim  ' + data.tiklananPage);
+
+				 	if( data.reloadPage != 0 ){
+                    	location.reload();
+                	}
+
 					var e = document.getElementById("materialList2");
 					tagDatas.strUser = e.options[e.selectedIndex].value;
 			
 					//console.log('dsada '+data.latestRes);
 					console.log('dsada '+tagDatas.strUser);
 
-					var dynamicTemp = 2;
-					var dynamicRes = 2;
-					var dynamicAdc = 2;
-					var dynamicMux = 2;
 					//material1Datas[2].nodeValue = 4;
 					if ( tagDatas.strUser == "Material1" ){
 						for (var i=0; i< tagDatas.idData.length; i++){
