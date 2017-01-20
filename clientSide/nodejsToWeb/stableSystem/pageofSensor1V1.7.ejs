@@ -1,0 +1,378 @@
+<!-- views/pages/pageofSensor1.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+    <link rel="stylesheet" type="text/css" href="https://github.com/epochjs/epoch/blob/master/tests/render/css/tests.css">
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.css">
+    <style>
+        .test .epoch {
+            width: 1000px;
+            height: 500px;
+        }
+    </style>
+</head>
+
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container", onload=generate_table(),graphTheData() >
+    
+    <header>
+        <% include ../partials/header %>
+    </header>
+   <form id="materialform2">
+    
+       <select id="materialList2" name='filling2' ">
+           	   <option value="Material1" selected>Material 1</option>
+                <option value="Material2">Material 2</option>
+                <option value="Material3">Material 3</option>
+		   		<option value="Material4">Material 4</option>
+		   		<option value="Material5">Material 5</option>
+		   		<option value="Material6">Material 6</option>
+		   		<option value="Material7">Material 7</option>
+		   		<option value="Material8">Material 8</option>
+		   		<option value="Material9">Material 9</option>
+        </select>
+        <br/><br/>
+
+               <fieldset>
+		<div id="output1"> </div>
+ 		<div id="totalPrice"> </div>
+		</fieldset>
+       		<output name="totalamount"></output>
+   
+   </form>
+
+    <div id="area" class="test">
+	<caption>Humidity Data</caption>
+    	<div class="epoch"></div>
+    </div>
+	Latest Temperature °C:
+	<p id="latestTemperature"></p>
+	Latest Resistance Ω:
+	<p id="latestResistance"></p>
+	Latest Humidity :
+	<p id="latestHumidity"></p>
+
+<script>
+
+// 1 - FOR THE CALCULATIONS of HUMIDITY
+
+	function getCalculate(a,b,c,x){
+ 		var result1 = a * (Math.pow(x, b)) + c;
+     		var result2 = result1.toPrecision(5);
+     		return result2;
+	}
+
+// 2 - 
+	// declare variables
+	var idData = [];
+	var tempData = [];
+	var adcData = [];
+	var resData = [];
+	var muxData = [];
+
+	// new variables
+	var datas = {
+		humidtyCell : [] 
+	}
+        	
+	// assigning
+
+	<%for(var i=1;i < pageId.length; i++){ %>
+    	idData.push(<%=pageId[i]%>-1);
+		tempData.push(<%=pageTemp[i]%>);
+		adcData.push(<%=pageAdc[i]%>);
+		resData.push(<%=pageRes[i]%>);
+		muxData.push(<%=pageMux[i]%>);
+	<% } %>
+
+	// variable for drawing data	
+	var material1Datas = [];
+
+	// create a dynamic table 
+	function generate_table() {
+		// get the reference for the body
+  		var body = document.getElementsByTagName("body")[0];
+  		
+ 		// creates a <table> element and a <tbody> element
+  		var tbl     = document.createElement("table");
+		var divTable = document.createElement("div");
+  		var tblBody = document.createElement("tbody");
+ 		var row1 = document.createElement("tr");
+		
+		// create the columns 
+		var TH1 = document.createElement("th");
+     	var th1 = document.createTextNode("ID");
+    	TH1.appendChild(th1);
+		row1.appendChild(TH1)
+
+		var TH2 = document.createElement("th");
+     	var th2 = document.createTextNode("Temperature");
+    	TH2.appendChild(th2);
+		row1.appendChild(TH2)
+
+		var TH3 = document.createElement("th");
+     	var th3 = document.createTextNode("ADC");
+    	TH3.appendChild(th3);
+		row1.appendChild(TH3)
+
+		var TH4 = document.createElement("th");
+     	var th4 = document.createTextNode("Resistor");
+    	TH4.appendChild(th4);
+		row1.appendChild(TH4)
+
+		var TH5 = document.createElement("th");
+     	var th5 = document.createTextNode("Mux");
+		TH5.appendChild(th5);
+		row1.appendChild(TH5)
+
+		var TH6 = document.createElement("th");
+     	var th6 = document.createTextNode("Moisture");
+    	TH6.appendChild(th6);
+		row1.appendChild(TH6)
+		
+		tblBody.appendChild(row1)
+		
+		var e = document.getElementById("materialList2");
+		strUser = e.options[e.selectedIndex].value;	
+		
+		// function for creating Elements
+  		function createElement(xData){
+ 				var cell = document.createElement("td");
+      			var cellText = document.createTextNode(xData);
+      			cell.appendChild(cellText);
+      			row.appendChild(cell);
+		}
+		  
+		// creating all cells
+  		for(var i=0;i < <%=pageId.length-1%> ; i++){
+    			// creates a table row
+    			var row = document.createElement("tr");
+   			
+				createElement(idData[i]);
+				createElement(tempData[i]);
+				createElement(adcData[i]);
+				createElement(resData[i]);
+				createElement(muxData[i]);
+
+				for (var j = 5; j < 6; j++) {
+      				var cell = document.createElement("td");
+				
+					if ( strUser == "Material1" ){
+						var preCellText = getCalculate(15.84,-0.2576,8.923,resData[i]);
+					}
+					else if ( strUser == "Material2" ){
+						var preCellText = getCalculate(13.2,-0.2515,10.77,resData[i]);
+					}
+					else if ( strUser == "Material3" ){
+						var preCellText = getCalculate(17.06,-0.2832,10.64,resData[i]);
+					}
+					else if ( strUser == "Material4" ){
+						var preCellText = getCalculate(11.57,-0.2447,9.538,resData[i]);
+					}
+					else if ( strUser == "Material5" ){
+						var preCellText = getCalculate(13.07,-0.2664,7.812,resData[i]);
+					}
+					else if ( strUser == "Material6" ){
+						var preCellText = getCalculate(11.34,-0.2485,7.965,resData[i]);
+					}
+					else if ( strUser == "Material7" ){
+						var preCellText = getCalculate(10.03,-0.3146,12.35,resData[i]);
+					}
+					else if ( strUser == "Material8" ){
+						var preCellText = getCalculate(14.62,-0.2774,11.5,resData[i]);
+					}
+					else if ( strUser == "Material9" ){
+						var preCellText = getCalculate(13.69,-0.2404,8.352,resData[i]);
+					}
+
+					cellText = document.createTextNode(preCellText.toString());
+        			material1Datas.push(preCellText);
+					//material1Datas[i].nodeValue = 9;
+					datas.humidtyCell.push(cellText);
+					//datas.humidtyCell[i].nodeValue = material1Datas[i];
+
+     				cell.appendChild(cellText);
+      				row.appendChild(cell);
+    			}
+			
+    			// add the row to the end of the table body
+    			tblBody.appendChild(row);
+  		}
+		
+  		// put the <tbody> in the <table>
+  		tbl.appendChild(tblBody);	
+		divTable.appendChild(tbl);
+  		// appends <table> into <body>
+  		body.appendChild(divTable);
+  		// sets the border attribute of tbl to 2;
+  		tbl.setAttribute("border", "2");
+
+	}
+
+
+//vd
+ setInterval(function(){
+
+        for(var i=0; i<4; i++){
+						datas.humidtyCell[i].nodeValue = material1Datas[i];
+					}
+
+    }, 2000);
+
+
+
+// 3 - REAL TIME GRAPHING PART
+
+	var nextTime = (function() {
+                var currentTime = parseInt(new Date().getTime() / 1000);
+                return function() { return currentTime++; }
+            })();
+			
+	var data = [{ label: 'A', values: [] }];
+        var interval = null;
+	var playing = true;
+		
+	var y = material1Datas[1];
+    var time = nextTime();
+	data[0].values.push({time: time, y: y});
+
+	//main function for graph, loaded onload
+	function graphTheData() {
+		
+		$(function() {
+
+			   var chart = $('#area .epoch').epoch({
+					type: 'time.line',
+					data: data,
+					axes: ['left', 'bottom'],
+					range: [0, 25]
+				});
+			 
+			   var i=0;
+
+			   var pushPoint = function() {
+                    	   	y = material1Datas[i];
+                    	   	time = nextTime();
+			   	chart.push([{ time: time, y: y}]);
+				if (typeof y !== 'undefined' ){
+					i++;
+				}
+
+			   }
+
+			   pushPoint();
+		   	   interval = setInterval(pushPoint, 1000);	
+
+        	});
+		
+	}
+
+////real time refresh
+var interval2 = null;
+interval2 = setInterval(ajaxCall,2000);
+var latestTemp = null;
+
+function ajaxCall() {
+	
+	$.ajax({
+        	url: "/getBuff",
+        	type: "POST",
+        	dataType: "json",
+        	data: {},
+        	contentType: "application/json",
+        	cache: false,
+        	timeout: 5000,
+        	complete: function() {
+           		//called when complete
+            	console.log('process complete');
+        	},
+        	success: function(data) {
+
+					var e = document.getElementById("materialList2");
+					strUser = e.options[e.selectedIndex].value;
+			
+					//console.log('dsada '+data.latestRes);
+					console.log('dsada '+strUser);
+
+					var dynamicTemp = 2;
+					var dynamicRes = 2;
+					var dynamicAdc = 2;
+					var dynamicMux = 2;
+					//material1Datas[2].nodeValue = 4;
+					if ( strUser == "Material1" ){
+						dynamicHumidty = getCalculate(15.84,-0.2576,8.923,dynamicRes);		
+					}
+					else if ( strUser == "Material2" ){
+						dynamicHumidty = getCalculate(13.2,-0.2515,10.77,dynamicRes);
+						location.reload();
+					}
+					else if ( strUser == "Material3" ){
+						dynamicHumidty = getCalculate(17.06,-0.2832,10.64,dynamicRes);
+					}
+					else if ( strUser == "Material4" ){
+						dynamicHumidty = getCalculate(11.57,-0.2447,9.538,dynamicRes);
+					}
+					else if ( strUser == "Material5" ){
+						dynamicHumidty = getCalculate(13.07,-0.2664,7.812,dynamicRes);
+					}
+					else if ( strUser == "Material6" ){
+						dynamicHumidty = getCalculate(11.34,-0.2485,7.965,dynamicRes);
+						alert('fucks');
+					}
+					else if ( strUser == "Material7" ){
+						dynamicHumidty = getCalculate(10.03,-0.3146,12.35,dynamicRes);
+					}
+					else if ( strUser == "Material8" ){
+						dynamicHumidty = getCalculate(14.62,-0.2774,11.5,dynamicRes);
+					}
+					else if ( strUser == "Material9" ){
+						dynamicHumidty = getCalculate(13.69,-0.2404,8.352,dynamicRes);
+					}
+					
+					
+					material1Datas.push(dynamicHumidty);
+					tempData.push(dynamicTemp);
+					resData.push(dynamicRes);
+					adcData.push(dynamicAdc);
+					muxData.push(dynamicMux);
+
+
+					for(var i=0; i<4; i++){
+						datas.humidtyCell[i].nodeValue = material1Datas[i];
+					}
+
+					latestTemp =  tempData.slice(-1);
+					document.getElementById("latestTemperature").innerHTML = latestTemp;
+
+					latestRes =  resData.slice(-1);
+					document.getElementById("latestResistance").innerHTML = latestRes;
+					
+					latestHum = material1Datas.slice(-1);
+					document.getElementById("latestHumidity").innerHTML = latestHum;
+					
+			
+  	    	},
+        	error: function() {
+               		console.log('process error');
+        	},
+	});
+}
+
+
+</script>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
