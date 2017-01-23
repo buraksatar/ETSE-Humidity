@@ -5,11 +5,15 @@
 <head>
     <% include ../partials/head %>
     <link rel="stylesheet" type="text/css" href="https://github.com/epochjs/epoch/blob/master/tests/render/css/tests.css">
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>	
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.css">
-    <style>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+    
+	<style>
         .test .epoch {
             width: 1000px;
             height: 500px;
@@ -22,7 +26,7 @@
 <meta name='viewport' content='width=device-width', initial-scale=1.0></head>
 
 
-<body class="container", onload=generate_table(),graphTheData() >
+<body class="container", onload=generate_table() >
     
     <header>
         <% include ../partials/header %>
@@ -50,15 +54,106 @@
    
    </form>
 
-   
-	<div id="area" class="test">
-	<caption>Humidity Data</caption>
-    	<div class="epoch"></div>
-    </div>
-    
+<div class="container">
+<div class="main">
+<form action="pageofSensor1" method="post">
+		
+	<label>Show after this date  :</label>
+	<input type="text" name="selectedDate" id="datepicker" value=''/>
+
+
+</form>
+</div>
+</div>  
 
 
 <script>
+//convert dates
+ function convert(d) {
+        // Converts the date in d to a date-object. The input can be:
+        //   a date object: returned without modification
+        //  an array      : Interpreted as [year,month,day]. NOTE: month is 0-11.
+        //   a number     : Interpreted as number of milliseconds
+        //                  since 1 Jan 1970 (a timestamp) 
+        //   a string     : Any format supported by the javascript engine, like
+        //                  "YYYY/MM/DD", "MM/DD/YYYY", "Jan 31 2009" etc.
+        //  an object     : Interpreted as an object with year, month and date
+        //                  attributes.  **NOTE** month is 0-11.
+        return (
+            d.constructor === Date ? d :
+            d.constructor === Array ? new Date(d[0],d[1],d[2]) :
+            d.constructor === Number ? new Date(d) :
+            d.constructor === String ? new Date(d) :
+            typeof d === "object" ? new Date(d.year,d.month,d.date) :
+            NaN
+        );
+    }
+
+
+
+///compare dates
+function compareDates(a,b) {
+        // Compare two dates (could be of any type supported by the convert
+        // function above) and returns:
+        //  -1 : if a < b
+        //   0 : if a = b
+        //   1 : if a > b
+        // NaN : if a or b is an illegal date
+        // NOTE: The code inside isFinite does an assignment (=).
+        return (
+            isFinite(a=this.convert(a).valueOf()) &&
+            isFinite(b=this.convert(b).valueOf()) ?
+            (a>b)-(a<b) :
+            NaN
+        );
+    }
+
+
+
+//demodeneme
+function myFunction() {
+	//bodyDatas.row[1].style= "display: none;";
+	//tagDatas.humidtyCell[1].nodeValue=99;
+	//console.log(tagDatas.timeData[1]);
+	for(var i=0; i<tagDatas.timeData.length; i++ ){
+		var aaa = new Date(Date.parse(tagDatas.timeData[i].replace('-','/','g')));
+		console.log('date1 ' + aaa.getTime());
+
+		var mySQLDate = document.getElementById("datepicker").value;
+		mySQLDate2 = new Date(Date.parse(mySQLDate.replace('-','/','g')));
+
+		console.log('date2 ' + mySQLDate2.getTime());
+
+		var result = compareDates(aaa,mySQLDate2);
+		
+		if (result == 1){
+
+			bodyDatas.row[i].style= 'table-row';
+		}
+		else if (result == 0){
+			console.log('bok vaar');
+		}
+		else{
+
+			bodyDatas.row[i].style= "display: none;";
+		}
+	}
+}
+
+
+
+//0-datepicker
+ $( function() {
+	$.datepicker.setDefaults({ dateFormat: 'yy-mm-dd' });
+    $( "#datepicker" ).datepicker({
+		onSelect: function(date) {
+            myFunction();
+        }
+	});
+
+  });
+
+
 
 // 1 - FOR THE CALCULATIONS of HUMIDITY
 
@@ -146,13 +241,15 @@
  				var cell = document.createElement("td");
       			var cellText = document.createTextNode(xData);
       			cell.appendChild(cellText);
-      			bodyDatas.row.appendChild(cell);
+				  bodyDatas.row[i].appendChild(cell);
 		}
+		bodyDatas.row = [];
 		  
 		// creating all cells
   		for(var i=0;i < <%=pageId.length-1%> ; i++){
     			// creates a table row
-    			bodyDatas.row = document.createElement("tr");
+				
+    			bodyDatas.row.push(document.createElement("tr")); 
    			
 				createElement(tagDatas.idData[i]);
 				createElement(tagDatas.tempData[i]);
@@ -198,7 +295,7 @@
 					tagDatas.humidtyCell[i].nodeValue = preCellText;
 
      				cell.appendChild(cellText);
-      				bodyDatas.row.appendChild(cell);
+					  bodyDatas.row[i].appendChild(cell);
 					
 
 					createElement(tagDatas.timeData[i]);
@@ -207,7 +304,7 @@
 				
 
     			// add the row to the end of the table body
-    			bodyDatas.tblBody.appendChild(bodyDatas.row);
+    			bodyDatas.tblBody.appendChild(bodyDatas.row[i]);
   		}
 		
   		// put the <tbody> in the <table>
@@ -219,69 +316,6 @@
   		bodyDatas.tbl.setAttribute("border", "2");
 
 	}
-
-
-//vd
- //setInterval(function(){
-//
- //       for(var i=0; i<4; i++){
-//						tagDatas.humidtyCell[i].nodeValue = material1Datas[i];
-//					}
-//
-  //  }, 2000);
-
-
-
-// 3 - REAL TIME GRAPHING PART
-
-	//main function for graph, loaded onload
-	function graphTheData() {
-
-
-		var nextTime = (function() {
-            var currentTime = parseInt(new Date().getTime() / 1000);
-            return function() { return currentTime++; }
-        })();
-			
-		var data = [{ label: 'A', values: [] }];
-        var interval = null;
-		var playing = true;
-		
-		var y = material1Datas[1];
-    	var time = nextTime();
-		data[0].values.push({time: time, y: y});
-
-
-		
-		$(function() {
-
-			   var chart = $('#area .epoch').epoch({
-					type: 'time.line',
-					data: data,
-					axes: ['left', 'bottom'],
-					range: [0, 25]
-				});
-			 
-			   var i=0;
-
-			   var pushPoint = function() {
-                    	   	y = material1Datas[i];
-                    	   	time = nextTime();
-			   	chart.push([{ time: time, y: y}]);
-				if (typeof y !== 'undefined' ){
-					i++;
-				}
-
-			   }
-
-			   pushPoint();
-		   	   interval = setInterval(pushPoint, 1000);	
-
-        	});
-		
-	}
-
-
 
 
 
@@ -305,7 +339,16 @@ function ajaxCall() {
         	},
         	success: function(data) {
 
-                 console.log('dubakalim  ' + data.tiklananPage);
+				//deneme
+				//$( function() {
+				//	$( "#datepicker" ).datepicker();
+				//	var deneme = $.datepicker.parseDate( "yy-mm-dd", "2007-01-26" );
+				//	console.log(deneme);
+  				//} );
+
+
+
+					console.log('date  '+document.getElementById("datepicker").value );
 
 				 	if( data.reloadPage != 0 ){
                     	location.reload();
@@ -396,10 +439,6 @@ function ajaxCall() {
 					}
 
 
-					
-					
-					
-					graphTheData();
 			
   	    	},
         	error: function() {
