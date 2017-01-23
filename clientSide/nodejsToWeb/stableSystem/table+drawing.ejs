@@ -5,11 +5,15 @@
 <head>
     <% include ../partials/head %>
     <link rel="stylesheet" type="text/css" href="https://github.com/epochjs/epoch/blob/master/tests/render/css/tests.css">
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>	
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.css">
-    <style>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+    
+	<style>
         .test .epoch {
             width: 1000px;
             height: 500px;
@@ -22,7 +26,7 @@
 <meta name='viewport' content='width=device-width', initial-scale=1.0></head>
 
 
-<body class="container", onload=generate_table() >
+<body class="container", onload=generate_table(),graphTheData() >
     
     <header>
         <% include ../partials/header %>
@@ -50,8 +54,33 @@
    
    </form>
 
+<div class="container">
+<h2>jQuery Datepicker UI Example Form</h2>
+<div class="main">
+<form action="pageofSensor1" method="post">
+		
+	<label>Date Of Birth :</label>
+	<input type="text" name="selectedDate" id="datepicker"/>
+
+<input type="submit" id="submit" value="Submit">
+</form>
+</div>
+</div>
+
+
+   
+	<div id="area" class="test">
+	<caption>Humidity Data</caption>
+    	<div class="epoch"></div>
+    </div>
+    
+
 
 <script>
+//0-datepicker
+
+
+
 
 // 1 - FOR THE CALCULATIONS of HUMIDITY
 
@@ -69,8 +98,10 @@
 		adcData : [],
 		resData : [],
 		muxData : [],
+		timeData : [],
 		humidtyCell : [],
-		strUser : []
+		strUser : [],
+		chipIDnumber : []
 	}
 
 
@@ -90,6 +121,8 @@
 		tagDatas.adcData.push(<%=pageAdc[i]%>);
 		tagDatas.resData.push(<%=pageRes[i]%>);
 		tagDatas.muxData.push(<%=pageMux[i]%>);
+		tagDatas.chipIDnumber.push('<%= pageId %>');
+		tagDatas.timeData.push('<%= pageTime[i] %>');
 	<% } %>
 
 	// variable for drawing data	
@@ -122,12 +155,13 @@
         createColumn('Resistor');
         createColumn('Mux');
         createColumn('Moisture');
+		createColumn('Time');
 
 		
 		bodyDatas.tblBody.appendChild(bodyDatas.row)
 		
 		var e = document.getElementById("materialList2");
-		tagDatas.strUser = e.options[e.selectedIndex].value;	
+		tagDatas.strUser.push(e.options[e.selectedIndex].value);	
 		
 		// function for creating Elements
   		function createElement(xData){
@@ -180,15 +214,20 @@
 					}
 
 					cellText = document.createTextNode(preCellText.toString());
-        			//material1Datas.push(preCellText);
+        			material1Datas.push(preCellText);
 					//material1Datas[i].nodeValue = 9;
 					tagDatas.humidtyCell.push(cellText);
 					tagDatas.humidtyCell[i].nodeValue = preCellText;
 
      				cell.appendChild(cellText);
       				bodyDatas.row.appendChild(cell);
+					
+
+					createElement(tagDatas.timeData[i]);
+
     			}
-			
+				
+
     			// add the row to the end of the table body
     			bodyDatas.tblBody.appendChild(bodyDatas.row);
   		}
@@ -215,6 +254,63 @@
 
 
 
+// 3 - REAL TIME GRAPHING PART
+
+	//main function for graph, loaded onload
+	function graphTheData() {
+
+
+		var nextTime = (function() {
+            var currentTime = parseInt(new Date().getTime() / 1000);
+            return function() { return currentTime++; }
+        })();
+			
+		var data = [{ label: 'A', values: [] }];
+        var interval = null;
+		var playing = true;
+		
+		var y = material1Datas[1];
+    	var time = nextTime();
+		data[0].values.push({time: time, y: y});
+
+
+		
+		$(function() {
+
+				var sd = $( "#datepicker" ).datepicker();
+
+			   var chart = $('#area .epoch').epoch({
+					type: 'time.line',
+					data: data,
+					axes: ['left', 'bottom'],
+					range: [0, 25]
+				});
+			 
+			   var i=0;
+
+			   var pushPoint = function() {
+                    	   	y = material1Datas[i];
+                    	   	time = nextTime();
+			   	chart.push([{ time: time, y: y}]);
+				if (typeof y !== 'undefined' ){
+					i++;
+				}
+
+			   }
+
+			   pushPoint();
+		   	   interval = setInterval(pushPoint, 1000);	
+
+
+
+        	});
+		
+	}
+
+
+
+
+
 var interval2 = null;
 interval2 = setInterval(ajaxCall,1000);
 var latestTemp = null;
@@ -235,6 +331,15 @@ function ajaxCall() {
         	},
         	success: function(data) {
 
+				//deneme
+				//$( function() {
+				//	$( "#datepicker" ).datepicker();
+				//	var deneme = $.datepicker.parseDate( "yy-mm-dd", "2007-01-26" );
+				//	console.log(deneme);
+  				//} );
+
+
+
                  console.log('dubakalim  ' + data.tiklananPage);
 
 				 	if( data.reloadPage != 0 ){
@@ -242,58 +347,94 @@ function ajaxCall() {
                 	}
 
 					var e = document.getElementById("materialList2");
-					tagDatas.strUser = e.options[e.selectedIndex].value;
-			
-					//console.log('dsada '+data.latestRes);
-					console.log('dsada '+tagDatas.strUser);
+					tagDatas.strUser.push( e.options[e.selectedIndex].value );
 
-					//material1Datas[2].nodeValue = 4;
-					if ( tagDatas.strUser == "Material1" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(15.84,-0.2576,8.923,tagDatas.resData[i]);		
+					console.log('1-- '+ tagDatas.strUser[tagDatas.strUser.length-1] );
+
+					console.log('2-- '+ tagDatas.strUser[tagDatas.strUser.length-2] );
+
+					
+
+					if( tagDatas.strUser[tagDatas.strUser.length-1] != tagDatas.strUser[tagDatas.strUser.length-2] ){
+						
+						var dynamicHumidty;
+					
+						if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material1" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+
+								//$("#area").load(location.href + " #area");
+								//graphTheData();
+
+								dynamicHumidty = getCalculate(15.84,-0.2576,8.923,tagDatas.resData[i]);
+								tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;							
+								material1Datas.push( dynamicHumidty );
+								
+								//location.reload();	
+								//graphTheData();
+
+							}
 						}
-					}
-					else if ( tagDatas.strUser == "Material2" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(13.2,-0.2515,10.77,tagDatas.resData[i]);		
+						else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material2" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+
+								//$("#area").load(location.href + " #area");
+								//graphTheData();
+
+								dynamicHumidty = getCalculate(13.2,-0.2515,10.77,tagDatas.resData[i]);
+								tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;
+								material1Datas.push( dynamicHumidty );
+
+								
+
+							}
 						}
-					}
-					else if ( tagDatas.strUser == "Material3" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(17.06,-0.2832,10.64,tagDatas.resData[i]);		
+						else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material3" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+								dynamicHumidty = getCalculate(17.06,-0.2832,10.64,tagDatas.resData[i]);
+								tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;
+								material1Datas.push( dynamicHumidty );	
+							}
 						}
-					}
-					else if ( tagDatas.strUser == "Material4" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(11.57,-0.2447,9.538,tagDatas.resData[i]);		
+						else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material4" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+								dynamicHumidty = getCalculate(11.57,-0.2447,9.538,tagDatas.resData[i]);
+								tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;
+								material1Datas.push( dynamicHumidty );	
+							}
 						}
-					}
-					else if ( tagDatas.strUser == "Material5" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(13.07,-0.2664,7.812,tagDatas.resData[i]);		
+						else if ( tagDatas.strUser == "Material5" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+								tagDatas.humidtyCell[i].nodeValue = getCalculate(13.07,-0.2664,7.812,tagDatas.resData[i]);		
+							}
 						}
-					}
-					else if ( tagDatas.strUser == "Material6" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(11.34,-0.2485,7.965,tagDatas.resData[i]);		
+						else if ( tagDatas.strUser == "Material6" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+								tagDatas.humidtyCell[i].nodeValue = getCalculate(11.34,-0.2485,7.965,tagDatas.resData[i]);		
+							}
 						}
-					}
-					else if ( tagDatas.strUser == "Material7" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(10.03,-0.3146,12.35,tagDatas.resData[i]);		
+						else if ( tagDatas.strUser == "Material7" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+								tagDatas.humidtyCell[i].nodeValue = getCalculate(10.03,-0.3146,12.35,tagDatas.resData[i]);		
+							}
 						}
-					}
-					else if ( tagDatas.strUser == "Material8" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(14.62,-0.2774,11.5,tagDatas.resData[i]);		
+						else if ( tagDatas.strUser == "Material8" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+								tagDatas.humidtyCell[i].nodeValue = getCalculate(14.62,-0.2774,11.5,tagDatas.resData[i]);		
+							}
 						}
-					}
-					else if ( tagDatas.strUser == "Material9" ){
-						for (var i=0; i< tagDatas.idData.length; i++){
-							tagDatas.humidtyCell[i].nodeValue = getCalculate(13.69,-0.2404,8.352,tagDatas.resData[i]);		
+						else if ( tagDatas.strUser == "Material9" ){
+							for (var i=0; i< tagDatas.idData.length; i++){
+								tagDatas.humidtyCell[i].nodeValue = getCalculate(13.69,-0.2404,8.352,tagDatas.resData[i]);		
+							}
 						}
+					
 					}
-				
+
+
+					
+					
+					
+					//graphTheData();
 			
   	    	},
         	error: function() {
