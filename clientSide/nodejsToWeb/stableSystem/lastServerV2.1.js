@@ -58,7 +58,7 @@ var addClientCreateDatabaseFunction = function addClientCreateDatabaseFunction()
                         connection.query('CREATE TABLE s'  + dataFromForm.number + 
                             ' ( id INT PRIMARY KEY AUTO_INCREMENT, temp VARCHAR(255) NOT NULL,'+
                             ' res VARCHAR(255) NOT NULL, adc VARCHAR(255) NOT NULL, mux VARCHAR(255) NOT NULL,'+
-                            ' time TIMESTAMP DEFAULT CURRENT_TIMESTAMP, unixTime INT );',
+                            ' time TIMESTAMP DEFAULT CURRENT_TIMESTAMP);',
                             // error handling
                             function(err, result){
                                 // Case there is an error during the creation
@@ -329,9 +329,9 @@ eventEmitter.on('unsubsribeClient', unsubsribeClientFunction);
 
 var clickPageFunction = function clickPageFunction()
 {
-
+    
     //console.log(dataFromForm.linkClicked);
-    //console.log('GOT');
+    console.log('GOT');
     tagDatas.routePage++;
  
     //window.location.href = '/pageofSensor1';
@@ -348,6 +348,7 @@ var clickPageFunction = function clickPageFunction()
 				pageOfSensor.adc.push(rows[i].adc);
 				pageOfSensor.mux.push(rows[i].mux);
 				pageOfSensor.id.push(rows[i].id);
+                pageOfSensor.time.push(rows[i].time);
    			}
 
 			// use res.render to load up an ejs view file
@@ -357,7 +358,8 @@ var clickPageFunction = function clickPageFunction()
 				pageRes : pageOfSensor.res,
 				pageAdc : pageOfSensor.adc,
 				pageMux : pageOfSensor.mux,
-				pageId : pageOfSensor.id
+				pageId : pageOfSensor.id,
+                pageTime : pageOfSensor.time
  			});
             
             //res.json({ user: 'tobi' });
@@ -367,6 +369,7 @@ var clickPageFunction = function clickPageFunction()
 			pageOfSensor.adc=[];
 			pageOfSensor.mux=[];
 			pageOfSensor.id=[];
+            pageOfSensor.time=[];
 		});			
 
 	});
@@ -395,7 +398,8 @@ var pageOfSensor = {
 	res : [],
     temp : [],
     adc : [],
-    mux : []
+    mux : [],
+    time : []
 }
 // to give alert message, all of them have been used
 var alertMessages = {
@@ -414,7 +418,7 @@ var alertMessages = {
 var tagDatas = {
     chipIDname : [],
 	subscriptionName : [],
-    chipIDunixTime : [],
+    chipIDUnixTime : [],
     chipIDid : [],
     chipIDdescription : [],
     deneme : 0,
@@ -472,13 +476,13 @@ function getDatafromchipIDtable(){
     connection.query('SELECT * FROM chipID;', function (error, rows) 
     {
         tagDatas.subscriptionName = [];
-        tagDatas.chipIDunixTime = [];
+        tagDatas.chipIDUnixTime = [];
         tagDatas.chipIDid = [];
         tagDatas.chipIDdescription = [];
 
         for(var i=0;i<rows.length;i++){
      	    tagDatas.subscriptionName.push(rows[i].clientName);
-            tagDatas.chipIDunixTime.push(rows[i].unixTime);
+            tagDatas.chipIDUnixTime.push(rows[i].time);
             tagDatas.chipIDid.push(rows[i].id);
             tagDatas.chipIDdescription.push(rows[i].description);
     	}
@@ -507,7 +511,7 @@ function getDatafromRegisteredClientsTable(){
                 
                     latestValue.temp.push( rows[rows.length-1].temp );
                     //latestValue.res.push( rows[rows.length-1].res );
-                    latestValue.res.push( getCalculate(15.84,-0.2576,8.923,rows[rows.length-1].res) );
+                    latestValue.res.push( getCalculate(15.84,-0.2576,8.923,rows[rows.length-1].res).toString() );
             });
         }
 
@@ -517,15 +521,22 @@ function getDatafromRegisteredClientsTable(){
 
 function getCalculate(a,b,c,x){
  		var result1 = a * (Math.pow(x, b)) + c;
-     		var result2 = result1.toPrecision(5);
-     	return result2;
+     	var result2 = result1.toPrecision(5);
+        console.log('ds '+ result2);
+        if(result2 == 'Infinity'){
+            result2 = 'N/A';
+            return result2;
+        }
+        else{
+            return result2;
+        }
 }
 
 app.get('/configuration', function(req, res) {
     res.render('pages' + '/configuration',{
 	//send the data with those names as an array
         tagNumber : tagDatas.subscriptionName,
-        tagUnixTime : tagDatas.chipIDunixTime,
+        tagUnixTime : tagDatas.chipIDUnixTime,
         tagId : tagDatas.chipIDid,
         tagDescription : tagDatas.chipIDdescription,
         tagRegistered : registeredClients.subscriptionName,
@@ -537,6 +548,7 @@ app.get('/configuration', function(req, res) {
 
 app.post('/configuration', function(req, res) {
     
+
     if ( req.body.number ){
         dataFromForm.number = req.body.number;
         dataFromForm.description = req.body.description;
@@ -567,6 +579,39 @@ app.post('/configuration', function(req, res) {
     }
     tagDatas.deneme = 1;
 
+});
+
+app.post('/pageofSensor1', function(req, res) {
+    
+    if ( req.body.selectedDate ){
+        console.log('aha date i aldik '+ req.body.selectedDate);
+    }
+
+    app.get('/pageofSensor1', function(req, res) {
+
+		// reaching the related table in database, for example sensor1, sensor2, sensor3 ...
+		
+
+			// use res.render to load up an ejs view file
+			res.render('pages/pageofSensor1' ,{
+				//send the data with those names as an array
+        		pageTemp : 5,
+				pageRes : 5,
+				pageAdc : 5,
+				pageMux : 5,
+				pageId : 5,
+                pageTime : 5
+ 			});
+            
+        		
+
+	});
+
+
+
+
+    alertMessages.reloadPage++;
+    
 });
 
 subscribeAll();
@@ -629,7 +674,7 @@ app.post('/getBuff', function(req, res) {
     
     res.send({
         tagNumber : tagDatas.subscriptionName,
-        tagUnixTime : tagDatas.chipIDunixTime,
+        tagUnixTime : tagDatas.chipIDUnixTime,
         tagId : tagDatas.chipIDid,
         tagDescription : tagDatas.chipIDdescription,
         tagRegistered : registeredClients.subscriptionName,
@@ -664,7 +709,6 @@ app.post('/getBuff', function(req, res) {
 });
 
 
-
 // if a data goes to mqtt broker and if server subscribe one those topic
 // gets the data and write them into sqldatabase
 function mqtt2sql(chipIDofSensor) {
@@ -694,21 +738,16 @@ function mqtt2sql(chipIDofSensor) {
             };
             
             // put post values to table of sensor1 in MYSQL database
-            var query = connection.query('INSERT INTO s'+ chipIDofSensor + ' SET ?', post , function (err, result) {
-            
+            var query = connection.query('INSERT INTO s'+ chipIDofSensor + ' SET ?', post , function (err, result) {            
                 if (err) {
-                    //console.error(err);
         		    return;
       		    }
-      		    //console.error(result);
-
             });
 
             if(chipIDofSensor == dataFromForm.linkClicked){
                 console.log('sic');
                 alertMessages.reloadPage++;
             }
-
         }              
     })
 }
