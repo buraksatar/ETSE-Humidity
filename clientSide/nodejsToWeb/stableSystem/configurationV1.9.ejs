@@ -41,10 +41,10 @@
     
     <form id=selectDeleteOrUnsubscribe action="configuration" method="post">
        
-       <input id='deleteChipID' type="text" name="numberForDelete" value='' />
+       <input id='deleteChipID' type="hidden" name="numberForDelete" value='' />
        
-       <input id='unsubscribeChipID' type="text" name="numberForUnsubscribe" value='' />
-       <input id='unsubscribeDescription' type="text" name="descriptionForUnsubscribe" value='' />
+       <input id='unsubscribeChipID' type="hidden" name="numberForUnsubscribe" value='' />
+       <input id='unsubscribeDescription' type="hidden" name="descriptionForUnsubscribe" value='' />
        
        <input type="submit" value='Select The Action' />
 
@@ -121,7 +121,7 @@
     // GET ALL DATA FROM EXPRESSJS AND ASSING THEM TO THE TAGDATAS VARIABLES
     <%for(var i=0;i < tagId.length; i++){ %>
         tagDatas.chipIDid.push(<%= tagId[i] %>);
-        tagDatas.chipIDunixTime.push(<%= tagUnixTime[i] %>);
+        tagDatas.chipIDunixTime.push('<%= tagUnixTime[i] %>');
         tagDatas.chipIDnumber.push('<%= tagNumber[i] %>');
         tagDatas.chipIDdescription.push('<%= tagDescription[i] %>');
 	<% } %>
@@ -131,7 +131,7 @@
         tagDatas.registered.push('<%= tagRegistered[i] %>');
         tagDatas.registeredDescription.push('<%= descriptionOfRegistered[i] %>');
         latestValues.latestTemp.push(<%= latestTemp[i] %>);
-        latestValues.latestRes.push(<%= latestRes[i] %>);
+        latestValues.latestRes.push('<%= latestRes[i] %>');
 	<% } %>
 
     // SHOW HOW MANY CLIENTS ACTIVE
@@ -373,9 +373,9 @@
             	console.log('process complete');
         	},
         	success: function(data) {
+                 console.log('dubakalim  ' + data.tiklananPage);
 
-
-                console.log('haydibakalim  ' + latestValues.cellTextForLatestRes);
+                //console.log('haydibakalim  ' + latestValues.cellTextForLatestRes);
                 latestValues.latestTemp = data.latestTemp;
                 latestValues.latestRes = data.latestRes;
                 
@@ -403,7 +403,7 @@
                     alert("Subscribed Successfully!");
                 }
                 if( data.alertWrongClientIDSyntax == 1 ){
-                    alert("Wrong ClientID Syntax! It can't has any letters");
+                    alert("It can't has any letters! It has to be just 7 digit!");
                 }
                 if( data.alertWrongClientID7Digit == 1 ){
                     alert("It has to be 7 digit!");
