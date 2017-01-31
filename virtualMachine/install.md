@@ -1,3 +1,5 @@
+version : debian-8.7.1-amd64-netinst(jessie)
+
 hostname : debian
 
 pasword: **********same*********** 
