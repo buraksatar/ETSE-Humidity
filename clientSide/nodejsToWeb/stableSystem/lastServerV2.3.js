@@ -329,9 +329,9 @@ eventEmitter.on('unsubsribeClient', unsubsribeClientFunction);
 
 var clickPageFunction = function clickPageFunction()
 {
-
+    
     //console.log(dataFromForm.linkClicked);
-    //console.log('GOT');
+    console.log('GOT');
     tagDatas.routePage++;
  
     //window.location.href = '/pageofSensor1';
@@ -548,6 +548,7 @@ app.get('/configuration', function(req, res) {
 
 app.post('/configuration', function(req, res) {
     
+
     if ( req.body.number ){
         dataFromForm.number = req.body.number;
         dataFromForm.description = req.body.description;
@@ -578,6 +579,39 @@ app.post('/configuration', function(req, res) {
     }
     tagDatas.deneme = 1;
 
+});
+
+app.post('/pageofSensor1', function(req, res) {
+    
+    if ( req.body.selectedDate ){
+        console.log('aha date i aldik '+ req.body.selectedDate);
+    }
+
+    app.get('/pageofSensor1', function(req, res) {
+
+		// reaching the related table in database, for example sensor1, sensor2, sensor3 ...
+		
+
+			// use res.render to load up an ejs view file
+			res.render('pages/pageofSensor1' ,{
+				//send the data with those names as an array
+        		pageTemp : 5,
+				pageRes : 5,
+				pageAdc : 5,
+				pageMux : 5,
+				pageId : 5,
+                pageTime : 5
+ 			});
+            
+        		
+
+	});
+
+
+
+
+    alertMessages.reloadPage++;
+    
 });
 
 subscribeAll();
