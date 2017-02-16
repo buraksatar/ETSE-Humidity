@@ -24,13 +24,11 @@
 
     You have <div id="numberOfRegisteredSensor"></div> total sensor in your network
     
-    <br>
-
-    <br>
+    <br><br>
 	ChipID numbers and subscription address of all active sensors  :
 	<p id="allChipIDNumbers"></p>
 
-
+    
     <form id=addClient action="configuration" method="post">
         Write the chip number to add a new client <input type="text" name="number"/>
         <input type="text" name="description"/> 
@@ -38,6 +36,8 @@
     </form>
 
     <div id="mainTable"></div>
+
+    <br><br>
     
     <form id=selectDeleteOrUnsubscribe action="configuration" method="post">
        
@@ -46,7 +46,7 @@
        <input id='unsubscribeChipID' type="hidden" name="numberForUnsubscribe" value='' />
        <input id='unsubscribeDescription' type="hidden" name="descriptionForUnsubscribe" value='' />
        
-       <input type="submit" value='Select The Action' />
+       <input type="submit" value='Take The Selected Action' />
 
     </form>
 
