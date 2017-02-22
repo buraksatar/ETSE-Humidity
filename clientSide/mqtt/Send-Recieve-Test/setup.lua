@@ -1,4 +1,4 @@
--- file name: setup.lua
+-- file: setup.lua
 local module = {}
 
 local function wifi_wait_ip()  
@@ -38,4 +38,4 @@ function module.start()
   wifi.sta.getap(wifi_start)
 end
 
-return module
+return module 
