@@ -134,7 +134,7 @@ local function register_myself()
 end
 
 local function mqtt_start()  
-    m = mqtt.Client(config.ID, 120)
+    m = mqtt.Client(config.ID, 120, config.USERNAME, config.PASSWORD)
     m:on("message", function(conn, topic, data) 
       if data ~= nil then
         print(topic .. ": " .. data)
