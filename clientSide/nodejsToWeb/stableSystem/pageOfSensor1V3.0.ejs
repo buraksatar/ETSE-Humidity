@@ -35,8 +35,8 @@
 
 	<!-- Section to select material type -->
 	<form id="materialForm">    
-    	<select id="materialList" name='filling' ">
-			<option value="Not Selected" selected>Select The Material</option>
+    	<select id="materialList" name='filling' >
+			<option value="Material0" selected>Select The Material</option>
         	<option value="Material1">Material 1</option>
             <option value="Material2">Material 2</option>
             <option value="Material3">Material 3</option>
@@ -66,19 +66,21 @@
 		</div>
 	</div>
 
-	<!-- Section for drawing the data -->
-	<div id="area" class="test">
-
-		<!-- to play/pause the drawing graph -->
-		<p align="right"><button value='dsa' id="myButton1" >Play</button></p>
-
-		<caption>Humidity Data</caption>
-    	
-		<div class="epoch"></div>
 	
-	</div>
+    <button onclick="justDraw()">Just Draw It</button>
+	<!-- <button onclick="drawTime()">Draw With Time</button> -->
+	<button onclick="drawLive()">Draw Live Graph</button>
 
 <script>
+function justDraw() {
+    window.location.href = '/pageofSensor1Static';
+}
+function drawTime() {
+    window.location.href = '/pageofSensor1Time';
+}
+function drawLive() {
+    window.location.href = '/pageofSensor1Live';
+}
 
 // Functions for sorting data by date
 // Sort table by the date
@@ -227,6 +229,10 @@ var drawing = {
 <% } %>
 
 
+// console.log('timeConverted: ' +   Date.parse(tagDatas.timeData[0]) / 1000 );
+
+
+
 // function to create a dynamic table 
 function generate_table() {
 	// get the reference for the body
@@ -321,7 +327,7 @@ function generate_table() {
 
 					
 			if(preCellText == 0){
-				var cellText = document.createTextNode(preCellText.toString());
+				var cellText = document.createTextNode('N/A');
 				tagDatas.humidtyCell.push(cellText);
 			}else{
 				var cellText = document.createTextNode(preCellText.toString());
@@ -356,19 +362,28 @@ function removeGraph(){
 		$(document).ready(function(){
 			$(".epoch").remove();
 			$('.test').append('<div class="epoch"></div>');
-
+			$('#area button').text('Play');
 			//drawing.status = !drawing.status;
-			document.getElementById('myButton1').innerHTML = 'Play';
+			//document.getElementById('myButton1').innerHTML = 'Play';
+
+			
+
 		});
 	})(jQuery1);
+
+	tagDatas.humidityData = [];
+	drawing.nextTime = [];
+	clearInterval(drawing.interval);
 }
 
 // to prevent the conflict
 // var jQuery2 = $.noConflict(); 
-function drawGraph(){
+function drawGraph(maxValue, minValue){
 	// variable to get insant time
 	drawing.nextTime = (function() {
 		var currentTime = parseInt(new Date().getTime() / 1000);
+		//var currentTime = parseInt(Date.parse(tagDatas.timeData[0]) / 1000);
+		
 		return function() { return currentTime++; }
 	})();
 
@@ -388,13 +403,13 @@ function drawGraph(){
 			$('.test:last').before('<div class="epoch"></div>');		   
 			//var denemeInterval = null;
 			var status = false;
-			drawing.maxData = 30 ;
+			drawing.maxData = maxValue ;
 			
 			var chart = $('#area .epoch').epoch({
 				type: 'time.line',
 				data: drawing.data,
 				axes: ['left', 'bottom'],
-				range: [0, drawing.maxData]
+				range: [minValue, drawing.maxData]
 			});
 				
 			var i=0;
@@ -435,6 +450,16 @@ function drawGraph(){
 
 }
 
+function getMaxData(data){
+	var max = Math.max(...data);	
+	return max;
+}
+
+function getMinData(data){
+	var min = Math.min(...data);	
+	return min;
+}
+
 // call ajaxCall function every second
 var interval2 = null;
 interval2 = setInterval(ajaxCall,1000);
@@ -466,80 +491,129 @@ function ajaxCall() {
 			if( tagDatas.strUser[tagDatas.strUser.length-1] != tagDatas.strUser[tagDatas.strUser.length-2] ){
 						
 				var dynamicHumidty;
-				//tagDatas.humidityData = [];
 
 				
 					if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material1" ){
+						removeGraph();
+						
 						for (var i=0; i< tagDatas.idData.length; i++){
 							dynamicHumidty = getCalculate(15.84,-0.2576,8.923,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );				
 						}
-						drawGraph()
+						
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 					}	
 					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material2" ){
+						removeGraph();
+						
 						for (var i=0; i< tagDatas.idData.length; i++){	
 							dynamicHumidty = getCalculate(13.2,-0.2515,10.77,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
-						drawGraph()
+						
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 					}
 					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material3" ){
+						removeGraph();
+
 						for (var i=0; i< tagDatas.idData.length; i++){
 							dynamicHumidty = getCalculate(17.06,-0.2832,10.64,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
-						removeGraph();
-						drawGraph()
+						
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 						
 					}
 					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material4" ){
+						removeGraph();
+
 						for (var i=0; i< tagDatas.idData.length; i++){
 							dynamicHumidty = getCalculate(11.57,-0.2447,9.538,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 					}
 					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material5" ){
+						removeGraph();
+
 						for (var i=0; i< tagDatas.idData.length; i++){
 							dynamicHumidty = getCalculate(13.07,-0.2664,7.812,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 					}
 					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material6" ){
+						removeGraph();
+
 						for (var i=0; i< tagDatas.idData.length; i++){
 							dynamicHumidty = getCalculate(11.34,-0.2485,7.965,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 					}
 					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material7" ){
+						removeGraph();
+
 						for (var i=0; i< tagDatas.idData.length; i++){
 							dynamicHumidty = getCalculate(10.03,-0.3146,12.35,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 					}
 					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material8" ){
+						removeGraph();
+
 						for (var i=0; i< tagDatas.idData.length; i++){
 							dynamicHumidty = getCalculate(14.62,-0.2774,11.5,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 					}
 					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material9" ){
+						removeGraph();
+
 						for (var i=0; i< tagDatas.idData.length; i++){
 							dynamicHumidty = getCalculate(13.69,-0.2404,8.352,tagDatas.resData[i]);
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
 					}
 					else{
 						for (var i=0; i< tagDatas.idData.length; i++){
-							dynamicHumidty = 70;
+							dynamicHumidty = 'N/A';
 							tagDatas.humidtyCell[i].nodeValue = dynamicHumidty;								
 							tagDatas.humidityData.push( dynamicHumidty );
 						}
