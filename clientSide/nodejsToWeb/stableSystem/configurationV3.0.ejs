@@ -18,19 +18,11 @@
         <% include ../partials/header %>
     </header>
 
-    You have <div id="numberOfSensor"></div> subscribed sensor in your network
-	
-	<br><br>
-
-    You have <div id="numberOfRegisteredSensor"></div> total sensor in your network
+    <div id="numberOfRegisteredSensor"></div>
+    <br>
+    <div id="numberOfSensor"></div> 
+    <br><br>
     
-    <br>
-
-    <br>
-	ChipID numbers and subscription address of all active sensors  :
-	<p id="allChipIDNumbers"></p>
-
-
     <form id=addClient action="configuration" method="post">
         Write the chip number to add a new client <input type="text" name="number"/>
         <input type="text" name="description"/> 
@@ -38,6 +30,8 @@
     </form>
 
     <div id="mainTable"></div>
+
+    <br><br>
     
     <form id=selectDeleteOrUnsubscribe action="configuration" method="post">
        
@@ -46,7 +40,7 @@
        <input id='unsubscribeChipID' type="hidden" name="numberForUnsubscribe" value='' />
        <input id='unsubscribeDescription' type="hidden" name="descriptionForUnsubscribe" value='' />
        
-       <input type="submit" value='Select The Action' />
+       <input type="submit" value='Take The Selected Action' />
 
     </form>
 
@@ -134,17 +128,13 @@
         latestValues.latestRes.push('<%= latestRes[i] %>');
 	<% } %>
 
-    // SHOW HOW MANY CLIENTS ACTIVE
-    document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length;
-    
-    for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
-        document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDnumber[i] + ' <br />';
-    }
-
     // SHOW HOW MANY CLIENTS REGISTERED
-    document.getElementById("numberOfRegisteredSensor").innerHTML = tagDatas.registered.length;
-
+    document.getElementById("numberOfRegisteredSensor").innerHTML = 'You have total ' + tagDatas.registered.length + ' sensor node.';
     
+
+    // SHOW HOW MANY CLIENTS ACTIVE
+    document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length + ' of them are subscribed.';    
+        
 
     // FOR STATUS CELL ON THE DYNAMIC TABLE
   	// IF REGISTERED TABLE AND CHIPID TABLE EQUAL THAT MEANS ALL STATUS HAS TO BE 'SUBSCRIBED'
@@ -412,28 +402,19 @@
                     window.location.href = '/pageofSensor1';
                 }
 
-                console.log('sfasfsa  ' + data.alertSuccessSubscribed);
-                
-
+               // get lenght of the registeredClients table 
+                tagDatas.registered = data.tagRegistered;
+                document.getElementById("numberOfRegisteredSensor").innerHTML = 'You have total ' + tagDatas.registered.length + ' sensor node';                
 
                 // get lenght of the chipID table 
                 tagDatas.chipIDid = data.tagId;
-                document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length;
-
-                // get lenght of the registeredClients table 
-                tagDatas.registered = data.tagRegistered;
-                document.getElementById("numberOfRegisteredSensor").innerHTML = tagDatas.registered.length;
+                document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDid.length + ' of them are subscribed '; 
 
                 // chipID number of active sensors
                 tagDatas.chipIDnumber = data.tagNumber;
                 // chipID number+queue(subscripton address) of active sensors
 
-                // get all things from chipID table
-                document.getElementById("allChipIDNumbers").innerHTML = '';
-                for ( var i=0; i< tagDatas.chipIDnumber.length;i++){            
-                    document.getElementById("allChipIDNumbers").innerHTML += (i+1) + '- ' + tagDatas.chipIDnumber[i] + '  related subscription adress :  /data/'  + tagDatas.chipIDnumber[i] + ' <br />';
-                }
-
+                
                 // to reset all check value every call
                 document.getElementById("deleteChipID").value = '';
                 document.getElementById("unsubscribeChipID").value = '';
