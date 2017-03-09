@@ -128,8 +128,12 @@ local function moisture()
 end
 
 --Sends my id to the broker for registration
-local function register_myself()  
-       m:publish(config.ENDPOINTtemp,measureTemp()..","..adc2r(currMeasure,currMUX)..","..currMeasure..","..currMUX,0,0, function(conn)
+local function register_myself()
+       resistorVirtual = math.random(100,200)
+       adcVirtual = math.random(50,100)
+       muxVirtual = math.random(10,20)
+       --m:publish(config.ENDPOINTtemp,measureTemp()..","..adc2r(currMeasure,currMUX)..","..currMeasure..","..currMUX,0,0, function(conn)
+       m:publish(config.ENDPOINTtemp,measureTemp()..","..resistorVirtual..","..adcVirtual..","..muxVirtual,0,0, function(conn)
        end)
 end
 
