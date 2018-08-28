@@ -1,0 +1,428 @@
+<!-- views/pages/pageofSensor1.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<!-- load the head.ejs part -->
+	<% include ../partials/head %>
+
+	<!-- load the all scripts and css file we need  -->
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script> 
+    <script src="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.js"></script> 
+	<link rel="stylesheet" type="text/css" href="https://github.com/epochjs/epoch/blob/master/tests/render/css/tests.css"> 
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/epoch/0.8.4/epoch.min.css"> 
+	
+	<!-- define the drawing size  -->
+	<style>
+		.test .epoch {
+        	width: 450px;
+            height: 320px;
+		}
+    </style>
+</head>
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+<body class="container" >
+    <!-- load the header.ejs part -->
+	<header>
+		<% include ../partials/header %>
+	</header>
+
+	<!-- Section to select material type -->
+	<form id="materialForm">    
+    	<select id="materialList" name='filling' >
+			<option value="Material0" selected>Select The Material</option>
+        	<option value="Material1">Material 1</option>
+            <option value="Material2">Material 2</option>
+            <option value="Material3">Material 3</option>
+		   	<option value="Material4">Material 4</option>
+		   	<option value="Material5">Material 5</option>
+		   	<option value="Material6">Material 6</option>
+		   	<option value="Material7">Material 7</option>
+		   	<option value="Material8">Material 8</option>
+		   	<option value="Material9">Material 9</option>
+        </select>
+        <br/><br/>   
+   	</form>
+
+	<!-- Section for drawing the data -->
+	<div id="area" class="test">
+
+		<!-- to play/pause the drawing graph -->
+		<p align="right"><button value='dsa' id="myButton1" >Play</button></p>
+
+		<caption>Humidity Data</caption>
+    	
+		<div class="epoch"></div>
+	
+	</div>
+
+<script>
+
+//jquery conflict protectation
+var jQuery1 = $.noConflict(); 
+
+// funtion for the calculations of Humidity
+function getCalculate(a,b,c,x){
+	var result1 = a * (Math.pow(x, b)) + c;
+	var result2 = result1.toPrecision(5);
+	return result2;
+}
+
+// declare variables to store datas
+var tagDatas = {
+	resData : [],
+	strUser : [],
+	humidityData : []
+}
+
+// declare variables for drawing the graph
+var drawing = {
+	maxData : [],
+	time : [],
+	nextTime : [],
+	data : [],
+	interval : [],
+	y : []
+}
+        	
+// gathering variables from mysql database using server
+tagDatas.resData.push(<%=pageRes%>);
+
+
+// function to create a dynamic table 
+
+function removeGraph(){
+
+	(function($){
+		$(document).ready(function(){
+			$(".epoch").remove();
+			$('.test').append('<div class="epoch"></div>');
+			$('#area button').text('Play');
+		});
+	})(jQuery1);
+
+	tagDatas.humidityData = [];
+	drawing.nextTime = [];
+	clearInterval(drawing.interval);
+}
+
+// to prevent the conflict
+// var jQuery2 = $.noConflict(); 
+function drawGraph(maxValue, minValue){
+	// variable to get insant time
+	drawing.nextTime = (function() {
+		var currentTime = parseInt(new Date().getTime() / 1000);
+		
+		return function() { return currentTime++; }
+	})();
+
+	// declare starter data for drawing graph 			
+	drawing.data = [{ label: 'A', values: [] }];
+	drawing.interval = null;
+	drawing.y = tagDatas.humidityData[1];
+
+	drawing.time = drawing.nextTime();
+
+	drawing.data[0].values.push({time: drawing.time, y: drawing.y});
+
+	// jquery function for drawing the graph
+	(function($){
+		$(document).ready(function() {
+			
+			$('.test:last').before('<div class="epoch"></div>');		
+			var status = false;
+			drawing.maxData = maxValue ;
+			
+			var chart = $('#area .epoch').epoch({
+				type: 'time.line',
+				data: drawing.data,
+				axes: ['left', 'bottom'],
+				range: [minValue, drawing.maxData]
+			});
+				
+			var i=0;
+				
+			var pushPoint = function() {
+				drawing.y = tagDatas.humidityData[i];
+
+				drawing.time = drawing.nextTime();
+				//time = 1370044800;
+				chart.push([{ time: drawing.time, y: drawing.y}]);
+				
+				if (typeof drawing.y !== 'undefined' ){
+					i++;
+				}
+				
+				chart.push([{range: [0, 30]}]);
+
+			}
+
+
+			$('#area button').on('click', function(e) {
+				
+
+					if (status) {
+						
+
+						$(e.target).text('Pause');
+						$(e.target).text('Play');
+						drawing.time = drawing.nextTime();
+						clearInterval(drawing.interval);
+						
+					}
+					else {
+						var materialE = document.getElementById("materialList");
+						
+						$(e.target).text('Pause');
+						
+						drawing.time = drawing.nextTime();
+						pushPoint();
+						drawing.interval = setInterval(pushPoint, 1000);
+					}
+					status = !status;
+
+				
+			});	
+		});
+	})(jQuery1);    
+
+}
+
+function getMaxData(data){
+	var max = Math.max(...data);	
+	return max;
+}
+
+function getMinData(data){
+	var min = Math.min(...data);	
+	return min;
+}
+
+// call ajaxCall function every second
+var interval2 = null;
+interval2 = setInterval(ajaxCall,1000);
+
+// the main ajax function to make connection with server side 
+function ajaxCall() {
+	
+	jQuery1.ajax({
+        url: "/getBuff",
+        type: "POST",
+        dataType: "json",
+        data: {},
+        contentType: "application/json",
+        cache: false,
+        timeout: 5000,
+        complete: function() {
+        	//called when complete
+        },
+        success: function(data) {
+
+			// the algorithm to calculate the humidity with every change on material selection
+			var e = document.getElementById("materialList");
+			tagDatas.strUser.push( e.options[e.selectedIndex].value );
+
+			if( tagDatas.strUser[tagDatas.strUser.length-1] != tagDatas.strUser[tagDatas.strUser.length-2] ){
+						
+				var dynamicHumidty;
+				    
+				
+					if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material1" ){
+						removeGraph();
+						
+						for (var i=0; i<1 ; i++){
+							dynamicHumidty = getCalculate( 15.84,-0.2576,8.923, tagDatas.resData );
+							tagDatas.humidityData.push( dynamicHumidty );				
+						}
+						
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+					}	
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material2" ){
+						removeGraph();
+						
+						for (var i=0; i<1 ; i++){	
+							dynamicHumidty = getCalculate( 13.2,-0.2515,10.77, tagDatas.resData );		
+							tagDatas.humidityData.push( dynamicHumidty );
+						}
+						
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material3" ){
+						removeGraph();
+
+						for (var i=0; i<1 ; i++){
+							dynamicHumidty = getCalculate(17.06,-0.2832,10.64, tagDatas.resData );			
+							tagDatas.humidityData.push( dynamicHumidty );
+						}
+						
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+						
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material4" ){
+						removeGraph();
+
+						for (var i=0; i<1; i++){
+							dynamicHumidty = getCalculate(11.57,-0.2447,9.538, tagDatas.resData );							
+							tagDatas.humidityData.push( dynamicHumidty );
+						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material5" ){
+						removeGraph();
+
+						for (var i=0; i<1; i++){
+							dynamicHumidty = getCalculate(13.07,-0.2664,7.812, tagDatas.resData );
+							tagDatas.humidityData.push( dynamicHumidty );
+						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material6" ){
+						removeGraph();
+
+						for (var i=0; i<1; i++){
+							dynamicHumidty = getCalculate(11.34,-0.2485,7.965, tagDatas.resData );								
+							tagDatas.humidityData.push( dynamicHumidty );
+						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material7" ){
+						removeGraph();
+
+						for (var i=0; i<1; i++){
+							dynamicHumidty = getCalculate(10.03,-0.3146,12.35, tagDatas.resData );			
+							tagDatas.humidityData.push( dynamicHumidty );
+						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material8" ){
+						removeGraph();
+
+						for (var i=0; i<1; i++){
+							dynamicHumidty = getCalculate(14.62,-0.2774,11.5, tagDatas.resData );
+							tagDatas.humidityData.push( dynamicHumidty );
+						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material9" ){
+						removeGraph();
+
+						for (var i=0; i<1; i++){
+							dynamicHumidty = getCalculate(13.69,-0.2404,8.352, tagDatas.resData );
+							tagDatas.humidityData.push( dynamicHumidty );
+						}
+
+						var maxValue = getMaxData(tagDatas.humidityData);
+						var minValue = getMinData(tagDatas.humidityData);
+						drawGraph( maxValue + 10, minValue - 10 );
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material0" ){
+						removeGraph();
+					}
+						
+				//			
+			}
+			else if( tagDatas.strUser[tagDatas.strUser.length-1] == tagDatas.strUser[tagDatas.strUser.length-2] ){
+				
+				if( ( data.mqttRes != 0 ) && ( data.tiklananPage == data.mqttChipID ) ){
+					
+					var dynamicHumidty;
+
+				
+					if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material1" ){
+		
+							dynamicHumidty = getCalculate(15.84,-0.2576,8.923,data.mqttRes);							
+							tagDatas.humidityData.push( dynamicHumidty );				
+						
+					}	
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material2" ){
+						
+							dynamicHumidty = getCalculate(13.2,-0.2515,10.77,data.mqttRes);							
+							tagDatas.humidityData.push( dynamicHumidty );
+						
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material3" ){
+						
+							dynamicHumidty = getCalculate(17.06,-0.2832,10.64,data.mqttRes);			
+							tagDatas.humidityData.push( dynamicHumidty );
+						
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material4" ){
+							
+							dynamicHumidty = getCalculate(11.57,-0.2447,9.538,data.mqttRes);
+							tagDatas.humidityData.push( dynamicHumidty );
+						
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material5" ){
+						
+							dynamicHumidty = getCalculate(13.07,-0.2664,7.812,data.mqttRes);
+							tagDatas.humidityData.push( dynamicHumidty );
+						
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material6" ){
+						
+							dynamicHumidty = getCalculate(11.34,-0.2485,7.965,data.mqttRes);
+							tagDatas.humidityData.push( dynamicHumidty );
+						
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material7" ){
+						
+							dynamicHumidty = getCalculate(10.03,-0.3146,12.35,data.mqttRes);
+							tagDatas.humidityData.push( dynamicHumidty );
+						
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material8" ){
+						
+							dynamicHumidty = getCalculate(14.62,-0.2774,11.5,data.mqttRes);
+							tagDatas.humidityData.push( dynamicHumidty );
+						
+					}
+					else if ( tagDatas.strUser[tagDatas.strUser.length-1] == "Material9" ){
+						
+							dynamicHumidty = getCalculate(13.69,-0.2404,8.352,data.mqttRes);
+							tagDatas.humidityData.push( dynamicHumidty );
+						
+					}
+
+				}
+			}
+
+		},
+        error: function() {
+            
+        },
+	});
+}
+
+</script>
+
+	
+
+</body>
+</html>

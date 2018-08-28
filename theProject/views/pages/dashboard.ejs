@@ -1,0 +1,434 @@
+<!-- views/pages/configuration.ejs -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <% include ../partials/head %>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+</head>
+
+
+<meta charset='UTF-8'> 
+<meta name='viewport' content='width=device-width', initial-scale=1.0></head>
+
+
+<body class="container", onload= >
+    
+    <header>
+        <% include ../partials/header %>
+    </header>
+
+    <div id="numberOfRegisteredSensor"></div>
+    <br>
+    <div id="numberOfSensor"></div> 
+    <br><br>
+    
+    <form id=addClient action="configuration" method="post">
+        <input type="hidden" name="number"/>
+        <input type="hidden" name="description"/> 
+        <input type="hidden" value='Add a New Client to The Server' />
+    </form>
+
+    <div id="mainTable"></div>
+
+    <br><br>
+    
+    <form id=selectDeleteOrUnsubscribe action="configuration" method="post">
+       
+       <input id='deleteChipID' type="hidden" name="numberForDelete" value='' />
+       
+       <input id='unsubscribeChipID' type="hidden" name="numberForUnsubscribe" value='' />
+       <input id='unsubscribeDescription' type="hidden" name="descriptionForUnsubscribe" value='' />
+       
+       <input type="hidden" value='Take The Selected Action' />
+
+    </form>
+
+
+
+<script>
+
+    // TAKE THE DIFFERENTIATION of WHOLE SENSORS AND ACTIVE SENSORS 
+    Array.prototype.diff = function(a) {
+        return this.filter(
+            function(i) {
+                if (a.indexOf(i) < 0){
+                    tagDatas.registeredStatus.push('Unsubscribed');
+                }
+                else {
+                    tagDatas.registeredStatus.push('Subscribed');
+                }                   
+            }
+        );
+    };
+
+    
+    // GENERAL VARIABLES FOR GENERAL ASPECTS
+    var general = {
+        previous : [],
+        latest : [],
+        elem : [],
+        elemUnSubscribe : [],
+        sikForUnsubcribe : 0,
+        sayacForTable : 0,
+        sayacForStatus : 0,
+        intervalForMainAjaxCall : null,
+        sayacForUpdate : 0,
+        kodumunSayaci : 0,
+        sikiminSayaci : 0
+    }
+    // GENERAL VARIABLES FOR TABLE CREATION
+    var bodyDatas = {
+        body : [],
+        tbl : [],
+        divTable : [],
+        tblBody : [],
+        row : [],
+        checkedForDelete : [],
+        checkedForSubscribe : []
+    }
+    // GENERAL VARIABLES FOR CHIPID and REGISTERED TABLES
+    var tagDatas = {
+        chipIDname : [],
+	    chipIDnumber : [],
+        chipIDqueue : [],
+        chipIDid : [],
+        sensorLength : 0,
+        registered : [],
+        registeredStatus : [],
+        registeredDescription : [],
+        chipID : []
+    };
+
+    // to get latest values from sensors
+    var latestValues = {
+        latestTemp : [],
+        latestRes : [],
+        cellTextForLatestTemp : [],
+        cellTextForLatestRes : []
+    }
+
+    // tagDatas.chipIDnumber is for chipID number of subscribed nodes 
+    // GET ALL DATA FROM EXPRESSJS AND ASSING THEM TO THE TAGDATAS VARIABLES
+    <%for(var i=0;i < tagNumber.length; i++){ %>
+        tagDatas.chipIDnumber.push('<%= tagNumber[i] %>');
+	<% } %>
+    
+    // tagDatas.registered is for chipID number of all sensor nodes
+    // tagDatas.registeredDescription is for description name of all sensor nodes
+    <%for(var i=0;i < tagRegistered.length; i++){ %>
+        tagDatas.registered.push('<%= tagRegistered[i] %>');
+        tagDatas.registeredDescription.push('<%= descriptionOfRegistered[i] %>');
+        latestValues.latestTemp.push(<%= latestTemp[i] %>);
+        latestValues.latestRes.push('<%= latestRes[i] %>');
+	<% } %>
+
+    // SHOW HOW MANY CLIENTS REGISTERED
+    document.getElementById("numberOfRegisteredSensor").innerHTML = 'You have total ' + tagDatas.registered.length + ' sensor node.';
+    
+
+    // SHOW HOW MANY CLIENTS ACTIVE
+    document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDnumber.length + ' of them are subscribed.';    
+        
+
+    // FOR STATUS CELL ON THE DYNAMIC TABLE
+  	// IF REGISTERED TABLE AND CHIPID TABLE EQUAL THAT MEANS ALL STATUS HAS TO BE 'SUBSCRIBED'
+    if( tagDatas.registered.length == tagDatas.chipIDnumber.length ){
+        for(var i=0;i < tagDatas.registered.length ; i++){
+            tagDatas.registeredStatus.push('Subscribed');
+            tagDatas.registeredClientNumber++;
+        }
+    }
+    // IF IT IS NOT EQUAL, CALL THE DIFFERENTIATION FUNCTION
+    else {
+        tagDatas.registered.diff(tagDatas.chipIDnumber); 
+    }
+
+    // CALL THE GENERATE TABLE FUNCTION
+    generate_table();
+
+
+    // GENERATE TABLE FUNCTION
+    function generate_table() {
+        
+        // GET THE REFERENCE FOR THE BODY
+  		bodyDatas.body = document.getElementsByTagName("body")[0];
+
+
+ 		// CREATES A <TABLE>, <DIV>, <TBODY>, <TR> ELEMENTS
+  		bodyDatas.tbl     = document.createElement("table");
+		bodyDatas.divTable = document.createElement("div");       
+  		bodyDatas.tblBody = document.createElement("tbody");
+ 		bodyDatas.row = document.createElement("tr");
+		
+		// CREATE THE COLUMNS FUNCTION
+        function createColumn (name){
+            var TH = document.createElement("th");
+            TH.align = "center";
+            var th = document.createTextNode(name);
+            TH.appendChild(th);
+		    bodyDatas.row.appendChild(TH)
+        }
+
+        // CREATE COLUMNS
+        createColumn('chipID');
+        createColumn('Type');
+        createColumn('Description');
+        createColumn('Temperature');
+        createColumn('Humidity');
+        createColumn('Status');
+	
+        // APPEND THE ROWS TO THE BODY
+		bodyDatas.tblBody.appendChild(bodyDatas.row)
+
+        // CREATE ALL CELLS
+  		for(var i=0;i < tagDatas.registered.length ; i++){
+    		// CREATE A TABLE ROW ELEMENT
+    		bodyDatas.row = document.createElement("tr");
+   			bodyDatas.row.align = "center";
+            // FILL THE ROWS WITH DATAS
+
+            // create the link related to chipID
+            var link = document.createElement('a');
+            link.textContent = tagDatas.registered[i];
+            link.href = "#"
+            link.id = tagDatas.registered[i];
+
+            createLink(link);
+			createElement(1);
+            createElement(tagDatas.registeredDescription[i]);
+            
+            getLatestTemp(latestValues.latestTemp[i],i);
+            getLatestRes(latestValues.latestRes[i],i);
+
+            // checkbox function
+            //checkBoxForDelete(i+1);
+            // checkbox function
+            //checkBoxForUnsubscribe(i+1);
+            createElement(tagDatas.registeredStatus[i]);
+			
+    		// ADD THE ROW TO THE END OF THE TABLE
+    		bodyDatas.tblBody.appendChild(bodyDatas.row);
+  		}
+        
+        function getLatestRes(xData,i){
+ 			var cell = document.createElement("td");
+            
+      		var cellText = document.createTextNode(xData);
+            latestValues.cellTextForLatestRes.push(cellText);
+            latestValues.cellTextForLatestRes[i].nodeValue = xData;
+      		
+            cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+
+
+        // Function to get latest Temp 
+  		function getLatestTemp(xData,i){
+ 			var cell = document.createElement("td");
+            
+      		var cellText = document.createTextNode(xData);
+            latestValues.cellTextForLatestTemp.push(cellText);
+            
+            if( xData == 0 ){
+                latestValues.cellTextForLatestTemp[i].nodeValue = 'N/A';
+            }
+            else{
+                latestValues.cellTextForLatestTemp[i].nodeValue = xData;
+            }
+            
+      		cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+        
+        // FUNCTION TO LINK ELEMENTS
+  		function createLink(xData){
+ 			var cell = document.createElement("td");
+      		var cellText = xData;
+
+      		cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+        
+        // FUNCTION TO CREATE ELEMENTS
+  		function createElement(xData){
+ 			var cell = document.createElement("td");
+      		var cellText = document.createTextNode(xData);
+
+      		cell.appendChild(cellText);
+      		bodyDatas.row.appendChild(cell);
+		}
+        
+        // CREATE CHECKBOX FOR  DELETING
+        function checkBoxForDelete(n){
+            var cell = document.createElement("td");
+            var checkbox = document.createElement('input');
+      		
+            checkbox.type = "checkbox";
+            checkbox.name = "Keslan"+ n;
+            checkbox.value = "sikko"+n;
+            checkbox.id = "checkedDeneme"+n;
+            checkbox.align = "left";
+
+            // ASSING THEM TO THE VARIABLES
+            //bodyDatas.checkedForDelete.push(checkbox);
+      		cell.appendChild(checkbox);
+      		bodyDatas.row.appendChild(cell);
+		}
+        
+        // CREATE CHECKBOX FOR UNSUBSCRIBING
+        function checkBoxForUnsubscribe(n){
+            var cell = document.createElement("td");
+            var checkbox = document.createElement('input');
+      		
+            checkbox.type = "checkbox";
+            checkbox.name = "Suslan"+ n;
+            checkbox.value = "sikko"+n;
+            checkbox.id = "checkedUnsubcribe"+n;
+            checkbox.align = "center";
+
+            // ASSING THEM TO THE VARIABLES
+            //bodyDatas.checkedForSubscribe.push(checkbox);
+            cell.appendChild(checkbox);
+      		bodyDatas.row.appendChild(cell);
+		}
+
+        // APPENDING   
+  		bodyDatas.tbl.appendChild(bodyDatas.tblBody);	
+		bodyDatas.divTable.appendChild(bodyDatas.tbl);
+        document.getElementById("mainTable").appendChild(bodyDatas.divTable);
+  		bodyDatas.body.appendChild(document.getElementById("mainTable"));
+  		bodyDatas.tbl.setAttribute("border", "2");
+        
+
+    }
+
+    
+    // check for links if clicked or not
+    $('a').click(function(){
+        //alert(this.id);
+        post('/configuration/', {sikko: this.id});
+
+    });
+
+    // POST FUNCTION - a common script for sending post without usign html form 
+    //script- begin
+    function post(path, params, method) {
+    method = method || "post"; // Set method to post by default if not specified.
+    var form = document.createElement("form");
+    form.setAttribute("method", method);
+    form.setAttribute("action", path);
+    for(var key in params) {
+        if(params.hasOwnProperty(key)) {
+            var hiddenField = document.createElement("input");
+            hiddenField.setAttribute("type", "hidden");
+            hiddenField.setAttribute("name", key);
+            hiddenField.setAttribute("value", params[key]);
+            form.appendChild(hiddenField);
+         }
+    }
+    document.body.appendChild(form);
+        form.submit();
+    }
+    //script- end
+
+    // to get latest data from sensor nodes
+    setInterval(function(){
+
+        for(var i=0;i < tagDatas.registered.length ; i++){
+            // those values represents Temperature and Humidty cells in the table
+
+            if( latestValues.latestTemp[i] == 0 ){
+                latestValues.cellTextForLatestTemp[i].nodeValue = 'N/A';
+            }
+            else{
+                latestValues.cellTextForLatestTemp[i].nodeValue = latestValues.latestTemp[i];
+            }
+
+            latestValues.cellTextForLatestRes[i].nodeValue = latestValues.latestRes[i];
+        }
+
+    }, 2000);
+
+ 
+    // Call the main ajax funtion
+    general.intervalForMainAjaxCall = setInterval(ajaxCall,1000);
+
+    function ajaxCall() {
+	
+	    $.ajax({
+        	url: "/getBuff",
+        	type: "POST",
+        	dataType: "json",
+        	data: {},
+        	contentType: "application/json",
+        	cache: false,
+        	timeout: 3000,
+        	complete: function() {
+           		//called when complete
+        	},
+        	success: function(data) {
+
+                latestValues.latestTemp = data.latestTemp;
+                latestValues.latestRes = data.latestRes;
+                
+
+                //alert messages
+                // to show alert message when the user enter client id that already registered 
+                if( data.alertAlreadyAdd == 1 ){
+                    alert("This client ID is already registered!");
+                }
+                if( data.alertSuccessAdded == 1 ){
+                    alert("Successfully added!");
+                }
+                if( data.alertSuccessDeleted != 0 ){
+                    alert("Deleted Successfully!");
+                }
+                if( data.alertSuccessUnsubscribed != 0 ){
+                    alert("Unsubscribed Successfully!");
+                }
+                if( data.alertSuccessSubscribed != 0 ){
+                    alert("Subscribed Successfully!");
+                }
+                if( data.alertWrongClientIDSyntax == 1 ){
+                    alert("It can't has any letters! It has to be just 7 digit!");
+                }
+                if( data.alertWrongClientID7Digit == 1 ){
+                    alert("It has to be 7 digit!");
+                }
+                 if( data.routePage != 0 ){
+                    window.location.href = '/pageofSensor1';
+                }
+
+               // get lenght of the registeredClients table 
+                tagDatas.registered = data.tagRegistered;
+                document.getElementById("numberOfRegisteredSensor").innerHTML = 'You have total ' + tagDatas.registered.length + ' sensor node';                
+
+                // get lenght of the chipID table 
+                tagDatas.chipIDnumber = data.tagNumber;
+                document.getElementById("numberOfSensor").innerHTML = tagDatas.chipIDnumber.length + ' of them are subscribed '; 
+
+                
+                // chipID number+queue(subscripton address) of active sensors
+
+                
+                // to reset all check value every call
+                document.getElementById("deleteChipID").value = '';
+                document.getElementById("unsubscribeChipID").value = '';
+                document.getElementById("unsubscribeDescription").value = '';
+
+                             
+  	    	},
+        	error: function() {
+        	},
+	    });
+    }
+
+</script>
+
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+
+</body>
+</html>
